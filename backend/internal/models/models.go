@@ -133,6 +133,13 @@ type Expense struct {
 	// silently swallowed by the big debt instead.
 	IsLongTermDebt bool `gorm:"not null;default:false;index" json:"is_long_term_debt"`
 
+	// AccountID is the money account (bank account, card, cash) this was paid
+	// from; nil when not tracked. ForMemberID is who the money was spent on —
+	// "school fees for child A" — which is separate from who paid and from how
+	// it is split. Nil means shared household spending.
+	AccountID   *uint `gorm:"index" json:"account_id,omitempty"`
+	ForMemberID *uint `gorm:"index" json:"for_member_id,omitempty"`
+
 	// Relations
 	Property    *Property        `json:"property,omitempty"`
 	Category    Category         `json:"category"`
@@ -754,4 +761,51 @@ type ContractTemplate struct {
 
 	// Relations
 	User User `json:"user,omitempty"`
+}
+
+// Account types a household can track.
+var AccountTypes = map[string]bool{
+	"savings": true, "current": true, "fixed": true,
+	"credit_card": true, "cash": true, "ewallet": true,
+}
+
+// Account is a place the household keeps money: a bank account, a credit
+// card, cash, an e-wallet. Its balance is never stored; it is derived from
+// OpeningBalance plus every income, transfer and expense that references it.
+type Account struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	PropertyID     uint    `gorm:"not null;index" json:"property_id"`
+	OwnerMemberID  *uint   `gorm:"index" json:"owner_member_id,omitempty"`
+	Name           string  `gorm:"not null" json:"name"`
+	Bank           string  `json:"bank"`
+	Type           string  `gorm:"not null;default:'savings'" json:"type"`
+	AccountNumber  string  `json:"account_number"`
+	OpeningBalance float64 `gorm:"not null;default:0" json:"opening_balance"`
+	Color          string  `json:"color,omitempty"`
+	IsArchived     bool    `gorm:"not null;default:false" json:"is_archived"`
+}
+
+// MoneyTransaction is an income into an account or a transfer between two
+// accounts. Spending stays in Expense, which carries splits, bills and
+// projects; the two together make up an account's history.
+type MoneyTransaction struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	PropertyID  uint      `gorm:"not null;index" json:"property_id"`
+	UserID      uint      `gorm:"not null;index" json:"user_id"`
+	Type        string    `gorm:"not null;index" json:"type"` // income | transfer
+	AccountID   uint      `gorm:"not null;index" json:"account_id"`
+	ToAccountID *uint     `gorm:"index" json:"to_account_id,omitempty"` // transfer destination
+	Amount      float64   `gorm:"not null" json:"amount"`
+	Date        time.Time `gorm:"not null;index" json:"date"`
+	Description string    `json:"description"`
+	Category    string    `json:"category,omitempty"`                   // income kind: salary, bonus, side_income, interest, other
+	ForMemberID *uint     `gorm:"index" json:"for_member_id,omitempty"` // whose income it is
 }

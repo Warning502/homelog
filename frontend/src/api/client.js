@@ -312,3 +312,17 @@ export const joinRequestAPI = {
 export const searchAPI = {
   query: (q, signal) => apiClient.get('/search', { params: { q }, signal }),
 }
+
+// Money accounts, incomes/transfers and the per-member spending summary.
+export const ledgerAPI = {
+  accounts: (propertyId) => apiClient.get(`/properties/${propertyId}/accounts`),
+  createAccount: (propertyId, data) => apiClient.post(`/properties/${propertyId}/accounts`, data),
+  updateAccount: (id, data) => apiClient.put(`/accounts/${id}`, data),
+  deleteAccount: (id) => apiClient.delete(`/accounts/${id}`),
+  transactions: (propertyId, params) => apiClient.get(`/properties/${propertyId}/transactions`, { params }),
+  createTransaction: (propertyId, data) => apiClient.post(`/properties/${propertyId}/transactions`, data),
+  updateTransaction: (id, data) => apiClient.put(`/transactions/${id}`, data),
+  deleteTransaction: (id) => apiClient.delete(`/transactions/${id}`),
+  summary: (propertyId, month) => apiClient.get(`/properties/${propertyId}/ledger/summary`, { params: { month } }),
+}
+

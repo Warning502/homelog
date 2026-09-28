@@ -177,6 +177,40 @@
         </select>
       </div>
 
+      <!-- Paid from account / spent on (ledger) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label for="expense-account" class="block text-sm text-ink-soft mb-1">
+            {{ t('ledger.expenseFields.account') }}
+          </label>
+          <select
+            id="expense-account"
+            v-model="form.account_id"
+            class="w-full px-3 py-3 border border-line rounded-lg bg-surface text-ink text-base
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option :value="null">{{ t('ledger.expenseFields.accountNone') }}</option>
+            <option v-for="a in ledger.activeAccounts" :key="a.id" :value="a.id">
+              {{ ledger.accountName(a.id) }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label for="expense-for-member" class="block text-sm text-ink-soft mb-1">
+            {{ t('ledger.expenseFields.forMember') }}
+          </label>
+          <select
+            id="expense-for-member"
+            v-model="form.for_member_id"
+            class="w-full px-3 py-3 border border-line rounded-lg bg-surface text-ink text-base
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option :value="null">{{ t('ledger.expenseFields.forMemberNone') }}</option>
+            <option v-for="m in ledger.members" :key="m.id" :value="m.id">{{ m.name }}</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Sezione Split -->
       <div v-if="hasMultipleUsers" class="border-t border-line pt-4 space-y-3">
         <div class="flex items-center gap-3">
@@ -305,6 +339,7 @@ import BaseModal from '@/components/common/BaseModal.vue'
 import Input from '@/components/common/Input.vue'
 import Button from '@/components/common/Button.vue'
 import { apiErrorMessage } from '@/utils/apiError'
+import { useLedgerStore } from '@/stores/ledger'
 
 const { t } = useI18n()
 
@@ -319,6 +354,7 @@ const emit = defineEmits(['close', 'created'])
 const expensesStore = useExpensesStore()
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
+const ledger = useLedgerStore()
 
 const loading = ref(false)
 const error = ref(null)
@@ -369,7 +405,9 @@ const form = ref({
   is_split: false,
   split_with_member_ids: [],
   project_id: props.projectId,
-  property_id: null
+  property_id: null,
+  account_id: null,
+  for_member_id: null
 })
 
 const hasMultipleUsers = computed(() => householdUsers.value.length > 1)
@@ -623,7 +661,9 @@ async function handleSubmit() {
       is_split: form.value.is_split,
       split_with_member_ids: form.value.is_split
         ? effectiveSplitMembers.value
-        : []
+        : [],
+      account_id: form.value.account_id || undefined,
+      for_member_id: form.value.for_member_id || undefined
     }
 
     await expensesStore.createExpense(expenseData)
@@ -638,6 +678,7 @@ async function handleSubmit() {
 }
 
 onMounted(async () => {
+  ledger.load().catch(() => {})
   fetchCategories()
   fetchExpenseTemplates()
   await fetchCurrentProperty()

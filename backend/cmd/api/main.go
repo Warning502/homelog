@@ -111,7 +111,17 @@ func main() {
 
 	// Apply middleware
 	router.Use(middleware.CORS())
-	router.Use(middleware.RateLimiter())
+	// Rate-limit the API only. A first visit loads dozens of JS/CSS chunks and
+	// icons; counting those against the per-IP budget locked visitors out of
+	// the page itself (and every visitor behind one NAT shares that budget).
+	apiLimiter := middleware.RateLimiter()
+	router.Use(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			apiLimiter(c)
+			return
+		}
+		c.Next()
+	})
 	router.Use(middleware.Logger())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
@@ -466,6 +476,18 @@ func registerAPIRoutes(r gin.IRouter, db *gorm.DB) {
 			// Household settings (per property) - nested under properties
 			properties.GET("/:id/settings", settingsHandler.GetHouseholdSettings)
 			properties.PUT("/:id/settings", settingsHandler.UpdateHouseholdSettings)
+
+			// Money accounts, incomes/transfers and the per-member summary
+			ledgerHandler := handlers.NewLedgerHandler(db)
+			properties.GET("/:id/accounts", ledgerHandler.ListAccounts)
+			properties.POST("/:id/accounts", ledgerHandler.CreateAccount)
+			properties.GET("/:id/transactions", ledgerHandler.ListTransactions)
+			properties.POST("/:id/transactions", ledgerHandler.CreateTransaction)
+			properties.GET("/:id/ledger/summary", ledgerHandler.Summary)
+			protected.PUT("/accounts/:id", ledgerHandler.UpdateAccount)
+			protected.DELETE("/accounts/:id", ledgerHandler.DeleteAccount)
+			protected.PUT("/transactions/:id", ledgerHandler.UpdateTransaction)
+			protected.DELETE("/transactions/:id", ledgerHandler.DeleteTransaction)
 
 			// Household members (per property) - nested under properties
 			memberHandler := handlers.NewMemberHandler(db)

@@ -97,7 +97,8 @@ func seedThaiDemo(db *gorm.DB) error {
 	mA := models.HouseholdMember{PropertyID: home.ID, UserID: &somchai.ID, Name: "สมชาย", Role: "admin"}
 	mB := models.HouseholdMember{PropertyID: home.ID, UserID: &somying.ID, Name: "สมหญิง", Role: "member"}
 	kid := models.HouseholdMember{PropertyID: home.ID, Name: "น้องต้นกล้า", Role: "ลูก", IsVirtual: true}
-	for _, m := range []*models.HouseholdMember{&mA, &mB, &kid} {
+	kid2 := models.HouseholdMember{PropertyID: home.ID, Name: "น้องใบข้าว", Role: "ลูก", IsVirtual: true}
+	for _, m := range []*models.HouseholdMember{&mA, &mB, &kid, &kid2} {
 		if err := db.Create(m).Error; err != nil {
 			return err
 		}
@@ -195,7 +196,11 @@ func seedThaiDemo(db *gorm.DB) error {
 	type opt struct {
 		personal bool
 		project  string
+		account  string // accIDs key; default: the payer's salary account
+		forM     string // A, B, kid, kid2; default: shared, or the payer when personal
 	}
+	accIDs := map[string]uint{}
+	memberOf := map[string]uint{"A": mA.ID, "B": mB.ID, "kid": kid.ID, "kid2": kid2.ID}
 	expense := func(d time.Time, payer, slug string, amount float64, desc string, o opt) {
 		at(d, func() error {
 			p := who[payer]
@@ -208,6 +213,18 @@ func seedThaiDemo(db *gorm.DB) error {
 			}
 			if o.project != "" {
 				body["project_id"] = projectIDs[o.project]
+			}
+			acc := o.account
+			if acc == "" {
+				acc = map[string]string{"A": "kbank", "B": "scb"}[payer]
+			}
+			body["account_id"] = accIDs[acc]
+			forM := o.forM
+			if forM == "" && o.personal {
+				forM = payer
+			}
+			if forM != "" {
+				body["for_member_id"] = memberOf[forM]
 			}
 			cat(slug, body)
 			_, err := call("POST", "/expenses", p.token, body)
@@ -246,6 +263,37 @@ func seedThaiDemo(db *gorm.DB) error {
 			return err
 		}
 		utilIDs[u.key] = idOf(out, "utility")
+	}
+
+	// Money accounts. Balances start a month before the history begins.
+	for _, a := range []struct {
+		key, name, bank, typ, number string
+		owner                        uint
+		opening                      float64
+	}{
+		{"kbank", "บัญชีเงินเดือน สมชาย", "กสิกรไทย", "savings", "0823456789", mA.ID, 48200},
+		{"scb", "บัญชีเงินเดือน สมหญิง", "ไทยพาณิชย์", "savings", "4051278834", mB.ID, 31500},
+		{"bbl", "เงินเก็บค่าเรียนลูก", "กรุงเทพ", "fixed", "2317760451", 0, 150000},
+		{"ttb", "เงินออมครอบครัว", "ทีทีบี", "savings", "1937745208", 0, 60000},
+		{"ktc", "บัตรเครดิตครอบครัว", "KTC", "credit_card", "4552889012344410", mA.ID, 0},
+		{"cash", "เงินสดในบ้าน", "", "cash", "", 0, 5000},
+	} {
+		body := map[string]any{"name": a.name, "bank": a.bank, "type": a.typ, "account_number": a.number, "opening_balance": a.opening}
+		if a.owner != 0 {
+			body["owner_member_id"] = a.owner
+		}
+		out, err := call("POST", fmt.Sprintf("/properties/%d/accounts", home.ID), tokA, body)
+		if err != nil {
+			return err
+		}
+		accIDs[a.key] = idOf(out, "account")
+	}
+	txn := func(d time.Time, tok string, body map[string]any) {
+		at(d, func() error {
+			body["date"] = ymd(d)
+			_, err := call("POST", fmt.Sprintf("/properties/%d/transactions", home.ID), tok, body)
+			return err
+		})
 	}
 
 	// Projects, relative to today.
@@ -304,11 +352,15 @@ func seedThaiDemo(db *gorm.DB) error {
 			if d%2 == 1 {
 				payer = "A"
 			}
+			o := split
+			if payer == "A" {
+				o.account = "ktc"
+			}
 			expense(day(d+rng.Intn(2)), payer, "food_groceries", money(1200, 3200, 5),
-				pick("ซื้อของเข้าบ้าน Lotus's", "ซื้อของที่ Big C", "ตุนของที่ Makro", "ซื้อของ Tops Market"), split)
+				pick("ซื้อของเข้าบ้าน Lotus's", "ซื้อของที่ Big C", "ตุนของที่ Makro", "ซื้อของ Tops Market"), o)
 		}
 		for i := 0; i < 3; i++ {
-			expense(rday(), ab(0.5), "food_groceries", money(150, 600, 5), pick("ตลาดสดหน้าหมู่บ้าน", "ผักผลไม้ตลาดนัด", "หมู ไก่ ไข่ ตลาดสด"), split)
+			expense(rday(), ab(0.5), "food_groceries", money(150, 600, 5), pick("ตลาดสดหน้าหมู่บ้าน", "ผักผลไม้ตลาดนัด", "หมู ไก่ ไข่ ตลาดสด"), opt{account: "cash"})
 		}
 		for i := 0; i < 3; i++ {
 			expense(rday(), ab(0.6), "food_restaurants", money(350, 1800, 10),
@@ -322,34 +374,51 @@ func seedThaiDemo(db *gorm.DB) error {
 			expense(rday(), ab(0.5), "food_delivery", money(120, 550, 5), pick("สั่ง Grab Food", "สั่ง LINE MAN", "สั่ง Foodpanda"), o)
 		}
 		for i := 0; i < 4; i++ {
-			expense(rday(), ab(0.5), "food_cafes", money(55, 180, 5), pick("กาแฟ Café Amazon", "Starbucks", "ชานมไข่มุก", "กาแฟร้านประจำ"), personal)
+			expense(rday(), ab(0.5), "food_cafes", money(55, 180, 5), pick("กาแฟ Café Amazon", "Starbucks", "ชานมไข่มุก", "กาแฟร้านประจำ"), opt{personal: true, account: "cash"})
 		}
 		for _, p := range []string{"A", "B"} {
 			for i := 0; i < 2; i++ {
-				expense(day(2+rng.Intn(26)), p, "transport_fuel", money(900, 1600, 10), pick("เติมน้ำมัน ปตท.", "เติมน้ำมัน บางจาก", "เติมน้ำมัน Shell"), personal)
+				o := personal
+				if p == "A" {
+					o.account = "ktc"
+				}
+				expense(day(2+rng.Intn(26)), p, "transport_fuel", money(900, 1600, 10), pick("เติมน้ำมัน ปตท.", "เติมน้ำมัน บางจาก", "เติมน้ำมัน Shell"), o)
 			}
 		}
 		expense(day(12), "A", "transport_parking_tolls", money(200, 450, 5), "ค่าทางด่วน Easy Pass", personal)
 		if m%6 == 2 {
 			expense(day(20), "A", "transport_car_maintenance", money(2500, 5500, 50), "เข้าศูนย์เช็กระยะรถ", personal)
 		}
+		// Children: school fees from the school fund, classes and activities.
 		if month == time.May || month == time.November {
-			expense(day(8), "A", "family_school", 28500, "ค่าเทอมโรงเรียนน้องต้นกล้า", split)
+			expense(day(8), "A", "family_school", 45000, "ค่าเทอมโรงเรียน น้องต้นกล้า", opt{account: "bbl", forM: "kid"})
+			expense(day(8), "A", "family_school", 38500, "ค่าเทอมโรงเรียน น้องใบข้าว", opt{account: "bbl", forM: "kid2"})
+			expense(day(12), "B", "education_supplies", money(1800, 3200, 10), "ค่าหนังสือและอุปกรณ์การเรียน", opt{forM: "kid"})
+			expense(day(12), "B", "family_kids_clothing", money(900, 1600, 10), "ชุดนักเรียนใหม่", opt{forM: "kid2"})
 		}
-		expense(day(14), "B", "family_toys", money(250, 1200, 10), pick("ของเล่นน้องต้นกล้า", "หนังสือนิทาน", "ตัวต่อเลโก้"), split)
+		expense(day(7), "B", "education_courses", 1600, "ค่าเรียนเปียโน รายเดือน", opt{forM: "kid"})
+		expense(day(9), "B", "education_courses", 2400, "ค่าเรียนว่ายน้ำ 8 ครั้ง", opt{forM: "kid2"})
+		if monthsAgo == 2 {
+			expense(day(20), "A", "family_toys", 1800, "ชุดว่ายน้ำและแว่นตาดำน้ำ", opt{account: "ktc", forM: "kid2"})
+		}
+		if monthsAgo == 0 {
+			expense(day(11), "B", "education_courses", 12900, "คอร์สเรียนดำน้ำ Junior Open Water", opt{forM: "kid2"})
+		}
+		expense(day(14), "B", "family_toys", money(250, 1200, 10), pick("ของเล่นและหนังสือนิทาน", "ตัวต่อเลโก้", "สีและสมุดวาดรูป"), opt{forM: pick("kid", "kid2")})
 		if m%3 == 1 {
-			expense(day(9), "B", "family_kids_clothing", money(600, 2200, 10), "เสื้อผ้าน้องต้นกล้า", split)
+			expense(day(9), "B", "family_kids_clothing", money(600, 2200, 10), "เสื้อผ้าเด็ก", opt{forM: pick("kid", "kid2")})
 		}
 		if m%4 == 0 {
-			expense(day(18), "B", "family_health", money(450, 2500, 10), pick("หาหมอเด็ก คลินิก", "ฉีดวัคซีนน้องต้นกล้า", "ร้านขายยา"), split)
+			expense(day(18), "B", "family_health", money(450, 2500, 10), pick("หาหมอเด็ก คลินิก", "ฉีดวัคซีน", "หาหมอฟันเด็ก"), opt{forM: pick("kid", "kid2")})
 		}
+		expense(day(17), ab(0.5), "food_restaurants", money(600, 1300, 10), "ข้าวกลางวันและขนมลูก", opt{account: "cash", forM: pick("kid", "kid2")})
 		expense(day(6), "B", "clothing_hairdresser", money(300, 1200, 10), "ทำผม", personal)
 		if m%2 == 1 {
 			expense(day(21), "A", "clothing_hairdresser", 150, "ตัดผม", personal)
 		}
 		expense(day(11), ab(0.5), "clothing_adults", money(400, 2500, 10), pick("ช้อป Shopee", "สั่ง Lazada", "Uniqlo"), personal)
 		expense(day(15), "B", "clothing_personal_products", money(200, 900, 10), "ของใช้ส่วนตัว Watsons", personal)
-		expense(day(5), "A", "entertainment_streaming", 419, "Netflix รายเดือน", split)
+		expense(day(5), "A", "entertainment_streaming", 419, "Netflix รายเดือน", opt{account: "ktc"})
 		expense(day(5), "B", "entertainment_streaming", 149, "Spotify Family", split)
 		if m%3 == 0 {
 			expense(day(16), "A", "home_ordinary_maintenance", money(350, 2800, 10), pick("ล้างแอร์ 2 เครื่อง", "ช่างซ่อมก๊อกน้ำ", "ซื้อหลอดไฟและอุปกรณ์", "ตัดหญ้าหน้าบ้าน"), split)
@@ -360,6 +429,46 @@ func seedThaiDemo(db *gorm.DB) error {
 		if m%2 == 0 {
 			expense(day(27), ab(0.5), "gifts_births", money(300, 1000, 100), pick("ทำบุญวัด", "ใส่ซองงานแต่งเพื่อน", "ใส่ซองงานบวช"), personal)
 		}
+
+		// Income and money moving between accounts.
+		txn(day(1), tokA, map[string]any{"type": "income", "account_id": accIDs["kbank"], "amount": 68000, "category": "salary", "for_member_id": mA.ID, "description": "เงินเดือน"})
+		txn(day(1), tokB, map[string]any{"type": "income", "account_id": accIDs["scb"], "amount": 52000, "category": "salary", "for_member_id": mB.ID, "description": "เงินเดือน"})
+		if month == time.December {
+			txn(day(20), tokA, map[string]any{"type": "income", "account_id": accIDs["kbank"], "amount": 68000, "category": "bonus", "for_member_id": mA.ID, "description": "โบนัสประจำปี"})
+		}
+		if m%2 == 1 {
+			txn(day(18), tokB, map[string]any{"type": "income", "account_id": accIDs["scb"], "amount": money(2500, 6000, 100), "category": "side_income", "for_member_id": mB.ID, "description": "ขายของออนไลน์"})
+		}
+		if month%3 == 0 {
+			txn(day(28), tokA, map[string]any{"type": "income", "account_id": accIDs["bbl"], "amount": money(300, 420, 1), "category": "interest", "description": "ดอกเบี้ยเงินฝากประจำ"})
+		}
+		txn(day(3), tokA, map[string]any{"type": "transfer", "account_id": accIDs["kbank"], "to_account_id": accIDs["bbl"], "amount": 10000, "description": "เก็บเงินค่าเรียนลูก"})
+		txn(day(15), tokB, map[string]any{"type": "transfer", "account_id": accIDs["scb"], "to_account_id": accIDs["cash"], "amount": 3000, "description": "ถอนเงินสดใช้ในบ้าน"})
+		txn(day(2), tokA, map[string]any{"type": "transfer", "account_id": accIDs["kbank"], "to_account_id": accIDs["ttb"], "amount": 32000, "description": "เก็บเงินออมประจำเดือน"})
+		txn(day(2), tokB, map[string]any{"type": "transfer", "account_id": accIDs["scb"], "to_account_id": accIDs["ttb"], "amount": 24000, "description": "เก็บเงินออมประจำเดือน"})
+		// Pay off the credit card in full on the 6th.
+		payDay := day(6)
+		at(payDay, func() error {
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", fmt.Sprintf("/api/v1/properties/%d/accounts", home.ID), nil)
+			req.Header.Set("Authorization", "Bearer "+tokA)
+			api.ServeHTTP(rec, req)
+			var list []struct {
+				ID      uint    `json:"id"`
+				Balance float64 `json:"balance"`
+			}
+			_ = json.Unmarshal(rec.Body.Bytes(), &list)
+			for _, a := range list {
+				if a.ID == accIDs["ktc"] && a.Balance < -1 {
+					_, err := call("POST", fmt.Sprintf("/properties/%d/transactions", home.ID), tokA, map[string]any{
+						"type": "transfer", "account_id": accIDs["kbank"], "to_account_id": accIDs["ktc"],
+						"amount": math.Round(-a.Balance*100) / 100, "date": ymd(payDay), "description": "ชำระบัตรเครดิต KTC",
+					})
+					return err
+				}
+			}
+			return nil
+		})
 
 		// Monthly meter readings and bills, paid ~10 days after the reading.
 		kwh := math.Round(330 + rng.Float64()*120)

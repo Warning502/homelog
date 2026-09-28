@@ -128,6 +128,44 @@
         </select>
       </div>
 
+      <!-- Paid from account / spent on — editable even after settlement -->
+      <div v-if="expense.property_id" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label for="edit-expense-account" class="block text-sm text-ink-soft mb-1">
+            {{ t('ledger.expenseFields.account') }}
+          </label>
+          <select
+            id="edit-expense-account"
+            v-model="form.account_id"
+            class="w-full px-3 py-3 border border-line rounded-lg bg-surface text-ink text-base
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option :value="null">{{ t('ledger.expenseFields.accountNone') }}</option>
+            <option
+              v-for="a in ledger.accounts.filter(x => !x.is_archived || x.id === form.account_id)"
+              :key="a.id"
+              :value="a.id"
+            >
+              {{ ledger.accountName(a.id) }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label for="edit-expense-for-member" class="block text-sm text-ink-soft mb-1">
+            {{ t('ledger.expenseFields.forMember') }}
+          </label>
+          <select
+            id="edit-expense-for-member"
+            v-model="form.for_member_id"
+            class="w-full px-3 py-3 border border-line rounded-lg bg-surface text-ink text-base
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option :value="null">{{ t('ledger.expenseFields.forMemberNone') }}</option>
+            <option v-for="m in ledger.members" :key="m.id" :value="m.id">{{ m.name }}</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Note about split -->
       <div v-if="expense.is_split && !isSettled" class="bg-warning/10 border border-warning/30 rounded-lg p-3">
         <p class="text-sm text-warning-soft">
@@ -163,6 +201,7 @@ import BaseModal from '@/components/common/BaseModal.vue'
 import Input from '@/components/common/Input.vue'
 import Button from '@/components/common/Button.vue'
 import { apiErrorMessage } from '@/utils/apiError'
+import { useLedgerStore } from '@/stores/ledger'
 
 const { t } = useI18n()
 
@@ -186,13 +225,17 @@ const error = ref(null)
 const categories = ref([])
 const activeProjects = ref([])
 
+const ledger = useLedgerStore()
+
 const form = ref({
   amount: null,
   description: '',
   category_id: 1,
   subcategory_id: null,
   date: '',
-  project_id: null
+  project_id: null,
+  account_id: null,
+  for_member_id: null
 })
 
 const selectedCategorySubcategories = computed(() => {
@@ -246,6 +289,11 @@ async function handleSubmit() {
       category_id: form.value.category_id,
       subcategory_id: form.value.subcategory_id || undefined,
     }
+    if (props.expense.property_id) {
+      // 0 clears the field on the server.
+      expenseData.account_id = form.value.account_id || 0
+      expenseData.for_member_id = form.value.for_member_id || 0
+    }
 
     if (!isSettled.value) {
       if (!amountLocked.value) {
@@ -275,7 +323,10 @@ onMounted(() => {
     category_id: props.expense.category_id || props.expense.category?.id || 1,
     subcategory_id: props.expense.subcategory_id || null,
     date: props.expense.date ? props.expense.date.split('T')[0] : '',
-    project_id: props.expense.project_id || null
+    project_id: props.expense.project_id || null,
+    account_id: props.expense.account_id || null,
+    for_member_id: props.expense.for_member_id || null
   }
+  ledger.load().catch(() => {})
 })
 </script>
