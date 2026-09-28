@@ -17,6 +17,7 @@ import (
 	"github.com/sgiraz/homelog/internal/database"
 	"github.com/sgiraz/homelog/internal/handlers"
 	"github.com/sgiraz/homelog/internal/middleware"
+	"gorm.io/gorm"
 )
 
 // appVersion is set at build time via -ldflags "-X main.appVersion=...".
@@ -79,6 +80,7 @@ func main() {
 	// hourly so the public demo stays clean and representative. Both are no-ops
 	// unless DEMO_MODE=true.
 	if database.IsDemoMode() {
+		database.DemoSeeder = seedThaiDemo
 		log.Println("🎭 DEMO_MODE enabled — destructive operations are disabled")
 		if err := database.SeedDemoIfNeeded(db); err != nil {
 			log.Printf("Warning: failed to seed demo data: %v", err)
@@ -133,7 +135,114 @@ func main() {
 	})
 
 	// API v1 routes
-	v1 := router.Group("/api/v1")
+	registerAPIRoutes(router, db)
+
+	// Serve uploaded files from the directory the handlers write to.
+	baseDataDir := database.DataDir()
+	router.Static("/uploads", filepath.Join(baseDataDir, "uploads"))
+	router.Static("/avatars", filepath.Join(baseDataDir, "avatars"))
+
+	// Serve embedded frontend (SPA + static assets)
+	serveFrontend(router)
+
+	// Start server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("🏠 HomeLog API v%s starting on port %s...", appVersion, port)
+	if err := router.Run(":" + port); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
+}
+
+func normalizeVersionTag(v string) string {
+	v = strings.TrimSpace(v)
+	v = strings.TrimPrefix(v, "refs/tags/")
+	v = strings.TrimPrefix(v, "v")
+	v = strings.TrimPrefix(v, "V")
+	return v
+}
+
+func parseCalVer(v string) ([4]int, bool) {
+	var out [4]int
+	parts := strings.Split(normalizeVersionTag(v), ".")
+	if len(parts) != 3 && len(parts) != 4 {
+		return out, false
+	}
+	for i, p := range parts {
+		if p == "" {
+			return out, false
+		}
+		n, err := strconv.Atoi(p)
+		if err != nil {
+			return out, false
+		}
+		out[i] = n
+	}
+	return out, true
+}
+
+// isVersionNewer returns true only when latest is strictly newer than current.
+func isVersionNewer(latest, current string) bool {
+	l, lok := parseCalVer(latest)
+	c, cok := parseCalVer(current)
+	if !lok || !cok {
+		// Unsupported format: don't report a newer version to avoid false positives.
+		return false
+	}
+	for i := range l {
+		if l[i] != c[i] {
+			return l[i] > c[i]
+		}
+	}
+	return false
+}
+
+// getLatestRelease fetches the latest release tag from GitHub, cached for 1 hour.
+func getLatestRelease() (tag string, url string) {
+	cacheMu.Lock()
+	defer cacheMu.Unlock()
+
+	if cachedLatest != "" && time.Since(cachedAt) < time.Hour {
+		return cachedLatest, cachedLatestURL
+	}
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Get("https://api.github.com/repos/sgiraz/homelog/releases/latest")
+	if err != nil {
+		log.Printf("⚠️  Failed to check GitHub releases: %v", err)
+		return cachedLatest, cachedLatestURL
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Worth a line: a 403 here is GitHub's unauthenticated rate limit
+		// (60 req/h per IP), which is otherwise invisible from the UI.
+		log.Printf("⚠️  GitHub release check returned HTTP %d", resp.StatusCode)
+		return cachedLatest, cachedLatestURL
+	}
+
+	var release struct {
+		TagName string `json:"tag_name"`
+		HTMLURL string `json:"html_url"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		return cachedLatest, cachedLatestURL
+	}
+
+	cachedLatest = release.TagName
+	cachedLatestURL = release.HTMLURL
+	cachedAt = time.Now()
+	return cachedLatest, cachedLatestURL
+}
+
+// registerAPIRoutes mounts every /api/v1 route on r. It is shared by the real
+// server and by the demo seeder (seedThaiDemo), which drives these same
+// handlers in-process so the demo dataset comes out of the app's own logic.
+func registerAPIRoutes(r gin.IRouter, db *gorm.DB) {
+	v1 := r.Group("/api/v1")
 	{
 		// Version check (public, no auth required)
 		v1.GET("/version", func(c *gin.Context) {
@@ -149,6 +258,8 @@ func main() {
 				"update_available": updateAvailable,
 				"check_failed":     checkFailed,
 				"demo_mode":        database.IsDemoMode(),
+				// Optional GoatCounter site for the public demo; empty = no analytics.
+				"analytics_site": demoAnalyticsSite(),
 			}
 			if latest != "" {
 				resp["latest"] = latest
@@ -417,104 +528,4 @@ func main() {
 			protected.GET("/search", searchHandler.Query)
 		}
 	}
-
-	// Serve uploaded files from the directory the handlers write to.
-	baseDataDir := database.DataDir()
-	router.Static("/uploads", filepath.Join(baseDataDir, "uploads"))
-	router.Static("/avatars", filepath.Join(baseDataDir, "avatars"))
-
-	// Serve embedded frontend (SPA + static assets)
-	serveFrontend(router)
-
-	// Start server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("🏠 HomeLog API v%s starting on port %s...", appVersion, port)
-	if err := router.Run(":" + port); err != nil {
-		log.Fatal("Failed to start server:", err)
-	}
-}
-
-func normalizeVersionTag(v string) string {
-	v = strings.TrimSpace(v)
-	v = strings.TrimPrefix(v, "refs/tags/")
-	v = strings.TrimPrefix(v, "v")
-	v = strings.TrimPrefix(v, "V")
-	return v
-}
-
-func parseCalVer(v string) ([4]int, bool) {
-	var out [4]int
-	parts := strings.Split(normalizeVersionTag(v), ".")
-	if len(parts) != 3 && len(parts) != 4 {
-		return out, false
-	}
-	for i, p := range parts {
-		if p == "" {
-			return out, false
-		}
-		n, err := strconv.Atoi(p)
-		if err != nil {
-			return out, false
-		}
-		out[i] = n
-	}
-	return out, true
-}
-
-// isVersionNewer returns true only when latest is strictly newer than current.
-func isVersionNewer(latest, current string) bool {
-	l, lok := parseCalVer(latest)
-	c, cok := parseCalVer(current)
-	if !lok || !cok {
-		// Unsupported format: don't report a newer version to avoid false positives.
-		return false
-	}
-	for i := range l {
-		if l[i] != c[i] {
-			return l[i] > c[i]
-		}
-	}
-	return false
-}
-
-// getLatestRelease fetches the latest release tag from GitHub, cached for 1 hour.
-func getLatestRelease() (tag string, url string) {
-	cacheMu.Lock()
-	defer cacheMu.Unlock()
-
-	if cachedLatest != "" && time.Since(cachedAt) < time.Hour {
-		return cachedLatest, cachedLatestURL
-	}
-
-	client := &http.Client{Timeout: 15 * time.Second}
-	resp, err := client.Get("https://api.github.com/repos/sgiraz/homelog/releases/latest")
-	if err != nil {
-		log.Printf("⚠️  Failed to check GitHub releases: %v", err)
-		return cachedLatest, cachedLatestURL
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		// Worth a line: a 403 here is GitHub's unauthenticated rate limit
-		// (60 req/h per IP), which is otherwise invisible from the UI.
-		log.Printf("⚠️  GitHub release check returned HTTP %d", resp.StatusCode)
-		return cachedLatest, cachedLatestURL
-	}
-
-	var release struct {
-		TagName string `json:"tag_name"`
-		HTMLURL string `json:"html_url"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return cachedLatest, cachedLatestURL
-	}
-
-	cachedLatest = release.TagName
-	cachedLatestURL = release.HTMLURL
-	cachedAt = time.Now()
-	return cachedLatest, cachedLatestURL
 }
