@@ -334,3 +334,32 @@ func TestLogout_ClearsCookie(t *testing.T) {
 		t.Fatalf("logout must expire the refresh cookie, got %+v", ck)
 	}
 }
+
+// Each invalid registration field gets its own error code, so the UI never
+// blames the password when the email was the problem.
+func TestRegister_ErrorCodeNamesTheField(t *testing.T) {
+	t.Setenv("JWT_SECRET", testutil.TestJWTSecret)
+	h := NewAuthHandler(testutil.NewDB(t))
+	r := gin.New()
+	r.POST("/auth/register", h.Register)
+
+	cases := []struct {
+		name string
+		body map[string]string
+		want string
+	}{
+		{"email without domain suffix", map[string]string{"email": "admin@admin", "password": "long-enough-pw", "name": "A"}, "invalid_email"},
+		{"short password", map[string]string{"email": "a@example.com", "password": "short", "name": "A"}, "password_too_short"},
+		{"missing name", map[string]string{"email": "a@example.com", "password": "long-enough-pw"}, "name_required"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := postJSON(t, r, "/auth/register", tc.body)
+			var resp map[string]any
+			_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+			if rec.Code != http.StatusBadRequest || resp["error_code"] != tc.want {
+				t.Fatalf("status=%d error_code=%v, want 400 %s", rec.Code, resp["error_code"], tc.want)
+			}
+		})
+	}
+}
