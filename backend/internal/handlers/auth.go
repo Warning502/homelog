@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -108,6 +110,16 @@ func clearRefreshCookie(c *gin.Context) {
 	})
 }
 
+// registerFailedField returns the struct field of the first validation error
+// in a RegisterRequest bind failure, or "" for anything else (e.g. bad JSON).
+func registerFailedField(err error) string {
+	var verrs validator.ValidationErrors
+	if errors.As(err, &verrs) && len(verrs) > 0 {
+		return verrs[0].Field()
+	}
+	return ""
+}
+
 // defaultCurrencyFor picks the starting currency of a new account from the
 // language it registers in. The user can change it in settings at any time.
 func defaultCurrencyFor(language string) string {
@@ -132,7 +144,18 @@ func (h *AuthHandler) issueSession(c *gin.Context, user *models.User) (string, e
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		apierr.Fail(c, http.StatusBadRequest, "invalid_registration", err.Error())
+		// Name the field that failed: a single catch-all message used to blame
+		// the password even when the email was the problem.
+		switch registerFailedField(err) {
+		case "Email":
+			apierr.Fail(c, http.StatusBadRequest, "invalid_email", err.Error())
+		case "Password":
+			apierr.Fail(c, http.StatusBadRequest, "password_too_short", err.Error())
+		case "Name":
+			apierr.Fail(c, http.StatusBadRequest, "name_required", err.Error())
+		default:
+			apierr.Fail(c, http.StatusBadRequest, "invalid_registration", err.Error())
+		}
 		return
 	}
 
