@@ -312,6 +312,8 @@ func SeedDefaultData(db *gorm.DB, userID uint) error {
 		DateFormat:                "DD/MM/YYYY",
 		DefaultSplitWithMemberIDs: "",
 		EmailNotifications:        true,
+		NotifyJoinRequests:        true,
+		NotifySharedExpenses:      true,
 		InAppNotifications:        true,
 		BillDueAlertDays:          3,
 		ReadingReminderDays:       7,

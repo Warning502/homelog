@@ -199,6 +199,8 @@ func (h *SettingsHandler) Update(c *gin.Context) {
 				Language:                  "it",
 				DefaultSplitWithMemberIDs: "",
 				EmailNotifications:        true,
+				NotifyJoinRequests:        true,
+				NotifySharedExpenses:      true,
 				BillDueAlertDays:          3,
 			}
 		} else {

@@ -127,8 +127,8 @@ async function finishOnboarding(token) {
     token,
     body: {
       language: 'th', currency: 'THB', date_format: 'DD/MM/YYYY', onboarding_completed: true,
-      // New accounts start with these off; a household that has used the app
-      // for a while would have turned them on, and it makes the bell realistic.
+      // On by default for accounts created since this was fixed; set
+      // explicitly so older servers produce notifications too.
       notify_join_requests: true, notify_shared_expenses: true,
     },
   })

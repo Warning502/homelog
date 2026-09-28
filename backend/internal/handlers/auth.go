@@ -253,6 +253,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			DateFormat:                "DD/MM/YYYY",
 			DefaultSplitWithMemberIDs: "",
 			EmailNotifications:        true,
+			NotifyJoinRequests:        true,
+			NotifySharedExpenses:      true,
 			BillDueAlertDays:          3,
 		}
 
@@ -303,6 +305,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			DateFormat:                "DD/MM/YYYY",
 			DefaultSplitWithMemberIDs: "",
 			EmailNotifications:        true,
+			NotifyJoinRequests:        true,
+			NotifySharedExpenses:      true,
 			BillDueAlertDays:          3,
 		}
 
