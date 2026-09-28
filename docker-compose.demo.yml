@@ -1,0 +1,12 @@
+# Public demo overlay — use together with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
+# Set by scripts/deploy-server.sh on the server. Demo mode seeds a Thai sample
+# household, resets it every hour and blocks account-changing actions, so this
+# must never run against real data.
+services:
+  homelog:
+    container_name: homelog-demo
+    restart: always
+    environment:
+      - DEMO_MODE=true
+      - DEMO_GOATCOUNTER_SITE=${DEMO_GOATCOUNTER_SITE:-}
