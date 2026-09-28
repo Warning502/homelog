@@ -3,7 +3,7 @@
     <div class="w-full max-w-2xl">
       <!-- Header -->
       <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold text-ink">HomeLog</h1>
+        <h1 class="text-3xl font-bold text-ink">HBS Finance</h1>
         <p class="text-ink-muted mt-1">{{ t('onboarding.stepIndicator', { current: currentStep, total: totalSteps }) }}</p>
       </div>
 

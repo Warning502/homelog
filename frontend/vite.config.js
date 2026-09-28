@@ -19,9 +19,9 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png', 'logo.svg'],
       manifest: {
-        name: 'HomeLog',
-        short_name: 'HomeLog',
-        description: 'Self-hosted home expense and utilities management',
+        name: 'HBS Finance',
+        short_name: 'HBS Finance',
+        description: 'Family income, expenses and bank accounts',
         theme_color: '#EAEDF3',
         background_color: '#EAEDF3',
         display: 'standalone',
