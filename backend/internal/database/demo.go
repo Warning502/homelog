@@ -16,7 +16,7 @@ import (
 // deployment: it seeds this shared account with a published password and
 // erases every row on each reset.
 const (
-	DemoEmail    = "demo@homelog.app"
+	DemoEmail    = "demo@hbs-finance.com"
 	DemoPassword = "demo"
 )
 
