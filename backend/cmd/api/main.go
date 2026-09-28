@@ -111,7 +111,17 @@ func main() {
 
 	// Apply middleware
 	router.Use(middleware.CORS())
-	router.Use(middleware.RateLimiter())
+	// Rate-limit the API only. A first visit loads dozens of JS/CSS chunks and
+	// icons; counting those against the per-IP budget locked visitors out of
+	// the page itself (and every visitor behind one NAT shares that budget).
+	apiLimiter := middleware.RateLimiter()
+	router.Use(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			apiLimiter(c)
+			return
+		}
+		c.Next()
+	})
 	router.Use(middleware.Logger())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 

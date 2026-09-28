@@ -253,7 +253,7 @@
     @click="closeDropdowns"
   />
 
-  <!-- Mobile Bottom Navigation — iOS Floating Pill Tab Bar (4 items) -->
+  <!-- Mobile Bottom Navigation — iOS Floating Pill Tab Bar (5 items) -->
   <div
     class="md:hidden fixed bottom-0 left-0 right-0 z-40"
     style="padding-bottom: env(safe-area-inset-bottom)"
@@ -287,6 +287,10 @@
             <!-- Expenses -->
             <template v-else-if="link.id === 'expenses'">
               <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" :fill="isActive(link.path) ? 'currentColor' : 'none'" :fill-opacity="isActive(link.path) ? '0.2' : '0'" />
+            </template>
+            <!-- Accounts (wallet) -->
+            <template v-else-if="link.id === 'accounts'">
+              <path d="M3 7a2 2 0 012-2h13a1 1 0 011 1v2M3 7v11a2 2 0 002 2h14a1 1 0 001-1v-3M3 7a2 2 0 002 2h14a1 1 0 011 1v3m0 3h-4a2 2 0 010-4h4v4z" :fill="isActive(link.path) ? 'currentColor' : 'none'" :fill-opacity="isActive(link.path) ? '0.2' : '0'" />
             </template>
             <!-- Utilities -->
             <template v-else-if="link.id === 'utilities'">
@@ -334,6 +338,7 @@ function handleToggleDarkMode() {
 const navLinks = computed(() => [
   { path: '/',          label: t('nav.dashboard'),  shortLabel: t('nav.dashboardShort'),  id: 'home' },
   { path: '/expenses',  label: t('nav.expenses'),   shortLabel: t('nav.expensesShort'),   id: 'expenses' },
+  { path: '/accounts',  label: t('nav.accounts'),   shortLabel: t('nav.accountsShort'),   id: 'accounts' },
   { path: '/utilities', label: t('nav.utilities'),  shortLabel: t('nav.utilitiesShort'),  id: 'utilities' },
   { path: '/projects',  label: t('nav.projects'),   shortLabel: t('nav.projectsShort'),   id: 'projects' },
 ])
