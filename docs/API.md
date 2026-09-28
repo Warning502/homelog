@@ -14,12 +14,27 @@ GET /version                    # Current version + update_available flag (publi
 
 ```http
 POST /auth/register             # Register new user (no auth required)
-POST /auth/login                # Login, returns JWT tokens (no auth required)
-POST /auth/refresh              # Refresh access token
+POST /auth/login                # Login, returns an access token (no auth required)
+POST /auth/refresh              # Rotate the session using the refresh cookie
+POST /auth/logout               # Expire the refresh cookie
 POST /auth/forgot-password      # Request password reset email (no auth required)
 POST /auth/reset-password       # Complete password reset (no auth required)
-PUT  /settings/password         # Change password (authenticated)
+PUT  /settings/password         # Change password (authenticated), returns a new access token
 ```
+
+Sessions use two JWTs (HS256):
+
+- **Access token** (15 min) — returned as `token` in the JSON body and sent as
+  `Authorization: Bearer <token>`.
+- **Refresh token** (7 days) — never in the body; it is set as the HttpOnly,
+  `SameSite=Strict` cookie `homelog_refresh`, scoped to `/api/v1/auth`.
+  Non-browser clients may instead POST `{"refresh_token": "..."}` to
+  `/auth/refresh`.
+
+Each token carries a `typ` claim, so a refresh token is rejected as a bearer
+token and vice versa. Changing or resetting the password, or an admin changing
+the user's role, revokes all existing refresh tokens. Passwords must be at
+least 8 characters.
 
 ## Exchange Rates
 

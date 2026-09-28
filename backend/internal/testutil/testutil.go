@@ -46,6 +46,9 @@ func SignToken(t *testing.T, user *models.User) string {
 		UserID: user.ID,
 		Email:  user.Email,
 		Role:   user.Role,
+
+		TokenType:    middleware.TokenTypeAccess,
+		TokenVersion: user.TokenVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -1,0 +1,31 @@
+{
+  "dashboard": "แดชบอร์ด",
+  "dashboardShort": "หน้าหลัก",
+  "expenses": "ค่าใช้จ่าย",
+  "expensesShort": "ค่าใช้จ่าย",
+  "utilities": "บริการ",
+  "utilitiesShort": "บริการ",
+  "projects": "โปรเจกต์",
+  "projectsShort": "โปรเจกต์",
+  "settings": "ตั้งค่า",
+  "search": "ค้นหา",
+  "logout": "ออกจากระบบ",
+  "skipToContent": "ข้ามไปยังเนื้อหาหลัก",
+  "themeToggleToLight": "เปลี่ยนเป็นโหมดสว่าง",
+  "themeToggleToDark": "เปลี่ยนเป็นโหมดมืด",
+  "notifications": {
+    "title": "การแจ้งเตือน",
+    "markAllRead": "ทำเครื่องหมายว่าอ่านทั้งหมด",
+    "viewAll": "ดูทั้งหมด",
+    "empty": "ไม่มีการแจ้งเตือน",
+    "loading": "กำลังโหลด...",
+    "fallbackTitle": "การแจ้งเตือน",
+    "fallbackUtility": "บริการ",
+    "timeAgo": {
+      "now": "เมื่อสักครู่",
+      "minutes": "{n} นาทีที่แล้ว",
+      "hours": "{n} ชม. ที่แล้ว",
+      "days": "{n} วันที่แล้ว"
+    }
+  }
+}

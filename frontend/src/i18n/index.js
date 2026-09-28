@@ -24,10 +24,11 @@ for (const path in modules) {
 // still agrees with this list.
 export const SUPPORTED_LOCALES = Object.keys(messages).sort()
 
-// English is the canonical source language of every message file and the
-// vue-i18n fallback, so it is also the default for a visitor whose browser
-// asks for a language we do not have.
-export const DEFAULT_LOCALE = 'en'
+// Default for a visitor whose browser asks for a language we do not have.
+// This deployment defaults to Thai; English stays the canonical source
+// language and the vue-i18n fallback for any missing key (see below).
+// Keep in sync with models.DefaultLanguage in the backend.
+export const DEFAULT_LOCALE = 'th'
 
 // Endonyms for the language picker: a language is named in itself, never
 // translated. Falls back to the bare tag for a locale added without an entry.
@@ -37,6 +38,7 @@ const LANGUAGE_ENDONYMS = {
   de: 'Deutsch',
   fr: 'Français',
   es: 'Español',
+  th: 'ไทย',
 }
 
 // Options for the settings language selector, in alphabetical endonym order.

@@ -1,0 +1,56 @@
+{
+  "home": "บ้าน",
+  "home_utilities": "ค่าสาธารณูปโภค",
+  "home_ordinary_maintenance": "ซ่อมบำรุงทั่วไป",
+  "home_major_works": "งานปรับปรุงใหญ่",
+  "home_furniture": "เฟอร์นิเจอร์",
+  "home_appliances": "เครื่องใช้ไฟฟ้า",
+
+  "food_dining": "อาหารและเครื่องดื่ม",
+  "food_groceries": "ของใช้และของสด",
+  "food_restaurants": "ร้านอาหาร",
+  "food_cafes": "คาเฟ่",
+  "food_delivery": "เดลิเวอรี",
+
+  "transport": "การเดินทาง",
+  "transport_fuel": "น้ำมัน",
+  "transport_car_maintenance": "ซ่อมบำรุงรถ",
+  "transport_insurance": "ประกันภัย",
+  "transport_parking_tolls": "ที่จอดรถและค่าทางด่วน",
+  "transport_public": "ขนส่งสาธารณะ",
+
+  "entertainment": "ความบันเทิง",
+  "entertainment_cinema_theatre": "ภาพยนตร์และละครเวที",
+  "entertainment_streaming": "สตรีมมิงและการสมัครสมาชิก",
+  "entertainment_books": "หนังสือและนิตยสาร",
+  "entertainment_travel": "ท่องเที่ยวและวันหยุด",
+
+  "family": "ครอบครัว",
+  "family_kids_clothing": "เสื้อผ้าเด็ก",
+  "family_school": "โรงเรียนและเนอร์สเซอรี",
+  "family_toys": "ของเล่นและอุปกรณ์",
+  "family_health": "สุขภาพ",
+
+  "clothing_personal_care": "เสื้อผ้าและของใช้ส่วนตัว",
+  "clothing_adults": "เสื้อผ้าผู้ใหญ่",
+  "clothing_hairdresser": "ร้านทำผมและตัดผม",
+  "clothing_personal_products": "ผลิตภัณฑ์ดูแลตัวเอง",
+
+  "education": "การศึกษา",
+  "education_courses": "คอร์สและการฝึกอบรม",
+  "education_textbooks": "ตำราเรียน",
+  "education_supplies": "อุปกรณ์การเรียน",
+
+  "technology": "เทคโนโลยี",
+  "technology_devices": "อุปกรณ์",
+  "technology_software": "ค่าสมาชิกซอฟต์แวร์",
+  "technology_repairs": "ค่าซ่อม",
+
+  "gifts": "ของขวัญ",
+  "gifts_birthdays": "วันเกิด",
+  "gifts_christmas": "คริสต์มาส",
+  "gifts_anniversaries": "วันครบรอบ",
+  "gifts_valentines": "วันวาเลนไทน์",
+  "gifts_graduations": "รับปริญญา",
+  "gifts_births": "เด็กแรกเกิดและพิธีล้างบาป"
+}

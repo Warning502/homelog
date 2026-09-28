@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/sgiraz/homelog/internal/middleware"
 	"github.com/sgiraz/homelog/internal/models"
 	"github.com/sgiraz/homelog/internal/testutil"
 )
@@ -173,5 +174,163 @@ func TestRegister_InheritsBrowserLanguage(t *testing.T) {
 				t.Errorf("language = %q, want %q", settings.Language, tc.want)
 			}
 		})
+	}
+}
+
+// newSessionTestRouter wires the auth endpoints that issue, rotate and revoke
+// sessions, plus one protected route to prove an access token works.
+func newSessionTestRouter(t *testing.T) (*gin.Engine, *AuthHandler) {
+	t.Helper()
+	r, h := newAuthTestRouter(t)
+	r.POST("/auth/refresh", h.RefreshToken)
+	r.POST("/auth/reset-password", h.ResetPassword)
+	r.POST("/auth/logout", h.Logout)
+	p := r.Group("")
+	p.Use(middleware.AuthRequired())
+	p.PUT("/settings/password", h.ChangePassword)
+	p.GET("/me", func(c *gin.Context) { c.Status(http.StatusOK) })
+	return r, h
+}
+
+func refreshCookie(t *testing.T, rec *httptest.ResponseRecorder) *http.Cookie {
+	t.Helper()
+	for _, ck := range rec.Result().Cookies() {
+		if ck.Name == refreshCookieName {
+			return ck
+		}
+	}
+	return nil
+}
+
+func postWithCookie(t *testing.T, r http.Handler, path string, ck *http.Cookie) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPost, path, nil)
+	if ck != nil {
+		req.AddCookie(ck)
+	}
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+	return rec
+}
+
+func login(t *testing.T, r http.Handler, email, password string) (string, *http.Cookie) {
+	t.Helper()
+	rec := postJSON(t, r, "/auth/login", map[string]string{"email": email, "password": password})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("login status = %d: %s", rec.Code, rec.Body.String())
+	}
+	var resp map[string]any
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if _, leaked := resp["refresh_token"]; leaked {
+		t.Fatalf("refresh_token must not be in the response body: %v", resp)
+	}
+	ck := refreshCookie(t, rec)
+	if ck == nil || ck.Value == "" {
+		t.Fatal("login did not set the refresh cookie")
+	}
+	if !ck.HttpOnly || ck.SameSite != http.SameSiteStrictMode {
+		t.Fatalf("refresh cookie must be HttpOnly+SameSite=Strict, got %+v", ck)
+	}
+	return resp["token"].(string), ck
+}
+
+func TestRefresh_WithCookieRotatesSession(t *testing.T) {
+	r, h := newSessionTestRouter(t)
+	seedUser(t, h, "carol@example.com", "correct-horse")
+	_, ck := login(t, r, "carol@example.com", "correct-horse")
+
+	rec := postWithCookie(t, r, "/auth/refresh", ck)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("refresh status = %d: %s", rec.Code, rec.Body.String())
+	}
+	if refreshCookie(t, rec) == nil {
+		t.Fatal("refresh did not rotate the cookie")
+	}
+}
+
+func TestRefresh_RejectsAccessToken(t *testing.T) {
+	r, h := newSessionTestRouter(t)
+	seedUser(t, h, "dave@example.com", "correct-horse")
+	access, _ := login(t, r, "dave@example.com", "correct-horse")
+
+	rec := postJSON(t, r, "/auth/refresh", map[string]string{"refresh_token": access})
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("access token accepted by /auth/refresh: status = %d", rec.Code)
+	}
+}
+
+func TestRefresh_RejectedAsBearer(t *testing.T) {
+	r, h := newSessionTestRouter(t)
+	seedUser(t, h, "erin@example.com", "correct-horse")
+	_, ck := login(t, r, "erin@example.com", "correct-horse")
+
+	rec := doJSON(t, r, http.MethodGet, "/me", ck.Value, nil)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("refresh token accepted as bearer: status = %d", rec.Code)
+	}
+}
+
+func TestChangePassword_RevokesOtherSessions(t *testing.T) {
+	r, h := newSessionTestRouter(t)
+	seedUser(t, h, "frank@example.com", "correct-horse")
+	_, otherDevice := login(t, r, "frank@example.com", "correct-horse")
+	access, _ := login(t, r, "frank@example.com", "correct-horse")
+
+	rec := doJSON(t, r, http.MethodPut, "/settings/password", access,
+		map[string]string{"current_password": "correct-horse", "new_password": "battery-staple"})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("change password status = %d: %s", rec.Code, rec.Body.String())
+	}
+	fresh := refreshCookie(t, rec)
+	if fresh == nil {
+		t.Fatal("change password must hand the caller a fresh session")
+	}
+
+	if rec := postWithCookie(t, r, "/auth/refresh", otherDevice); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("old refresh token still works after password change: status = %d", rec.Code)
+	}
+	if rec := postWithCookie(t, r, "/auth/refresh", fresh); rec.Code != http.StatusOK {
+		t.Fatalf("caller's new session rejected: status = %d", rec.Code)
+	}
+}
+
+func TestResetPassword_RevokesSessions(t *testing.T) {
+	r, h := newSessionTestRouter(t)
+	u := seedUser(t, h, "gina@example.com", "correct-horse")
+	_, ck := login(t, r, "gina@example.com", "correct-horse")
+
+	t.Setenv("DEV_EXPOSE_RESET_TOKEN", "true")
+	rec := postJSON(t, r, "/auth/forgot-password", map[string]string{"email": u.Email})
+	var resp map[string]any
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	resetTok, _ := resp["reset_token"].(string)
+
+	rec = postJSON(t, r, "/auth/reset-password", map[string]string{"token": resetTok, "new_password": "battery-staple"})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("reset status = %d: %s", rec.Code, rec.Body.String())
+	}
+	if rec := postWithCookie(t, r, "/auth/refresh", ck); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("refresh token survived a password reset: status = %d", rec.Code)
+	}
+}
+
+func TestPasswordMinimumLength(t *testing.T) {
+	r, h := newSessionTestRouter(t)
+	seedUser(t, h, "hank@example.com", "correct-horse")
+	access, _ := login(t, r, "hank@example.com", "correct-horse")
+
+	rec := doJSON(t, r, http.MethodPut, "/settings/password", access,
+		map[string]string{"current_password": "correct-horse", "new_password": "1234567"})
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("7-char password accepted: status = %d", rec.Code)
+	}
+}
+
+func TestLogout_ClearsCookie(t *testing.T) {
+	r, _ := newSessionTestRouter(t)
+	rec := postWithCookie(t, r, "/auth/logout", nil)
+	ck := refreshCookie(t, rec)
+	if ck == nil || ck.MaxAge >= 0 {
+		t.Fatalf("logout must expire the refresh cookie, got %+v", ck)
 	}
 }

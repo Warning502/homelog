@@ -28,6 +28,10 @@ const CodeServerError = "server_error"
 // bind — the detail comes from the validator and is developer-facing.
 const CodeInvalidRequest = "invalid_request"
 
+// CodeDemoForbidden is returned by the demo-mode guard middleware for
+// operations that would lock other visitors out of the shared demo account.
+const CodeDemoForbidden = "demo_mode_forbidden"
+
 // Response is the body of every error reply.
 type Response struct {
 	// Error is the English, developer-facing message.

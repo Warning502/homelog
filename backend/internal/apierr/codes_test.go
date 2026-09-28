@@ -28,6 +28,7 @@ func codesUsedInHandlers(t *testing.T) map[string]bool {
 	codes := map[string]bool{
 		CodeServerError:    true,
 		CodeInvalidRequest: true,
+		CodeDemoForbidden:  true,
 	}
 	for _, f := range files {
 		src, err := os.ReadFile(f)

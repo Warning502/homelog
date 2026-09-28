@@ -24,6 +24,10 @@ type User struct {
 
 	PasswordResetToken   string     `gorm:"index" json:"-"`
 	PasswordResetExpires *time.Time `json:"-"`
+
+	// TokenVersion is embedded in every issued JWT. Incrementing it (password
+	// change or reset, role change) revokes all refresh tokens issued before.
+	TokenVersion int `gorm:"not null;default:0" json:"-"`
 }
 
 // HouseholdMember represents a member of a household (can be a registered user or virtual)
@@ -146,13 +150,14 @@ var SupportedLanguages = map[string]bool{
 	"it": true,
 	"en": true,
 	"de": true,
+	"th": true,
 }
 
 // DefaultLanguage is used whenever no supported language can be determined.
-// English, not Italian: it is the canonical source language of every message
-// file and the vue-i18n fallback, so a visitor whose language we do not have
-// gets the one language every string is guaranteed to exist in.
-const DefaultLanguage = "en"
+// This deployment defaults to Thai. English remains the canonical source
+// language of every message file and the fallback for any missing message
+// (see i18n.T and the vue-i18n fallbackLocale).
+const DefaultLanguage = "th"
 
 // NormalizeLanguage maps a client-supplied language tag onto a supported
 // language, falling back to DefaultLanguage. Accepts regional tags ("en-GB")

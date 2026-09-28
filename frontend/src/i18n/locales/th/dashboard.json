@@ -1,0 +1,79 @@
+{
+  "title": "แดชบอร์ด",
+  "subtitle": "ภาพรวมค่าใช้จ่ายของคุณ",
+  "addExpenseButton": "เพิ่มค่าใช้จ่าย",
+  "noProperty": {
+    "pendingTitle": "คำขอรอดำเนินการ",
+    "pendingMessage": "คำขอเข้าร่วม {name} ของคุณกำลังรอการอนุมัติจากผู้ดูแล",
+    "noneTitle": "ยังไม่มีบ้าน",
+    "noneDescription": "สร้างบ้านใหม่หรือเข้าร่วมบ้านที่มีอยู่เพื่อเริ่มต้นใช้งาน",
+    "configureButton": "ตั้งค่า"
+  },
+  "kpi": {
+    "dailyAverage": "เฉลี่ยต่อวัน",
+    "periodTotal": "ค่าใช้จ่ายในบ้าน",
+    "topCategory": "หมวดหมู่สูงสุด",
+    "deltaVsPrevious": "{delta} เทียบกับช่วงก่อน",
+    "expenseCount_one": "{n} รายการ",
+    "expenseCount_other": "{n} รายการ",
+    "overDays_one": "ใน {n} วัน",
+    "overDays_other": "ใน {n} วัน"
+  },
+  "charts": {
+    "categoryByCategory": "ค่าใช้จ่ายตามหมวดหมู่",
+    "categoryBySubcategory": "ค่าใช้จ่ายตามหมวดหมู่ย่อย",
+    "backToCategories": "กลับไปที่หมวดหมู่",
+    "trendDaily": "แนวโน้มรายวัน",
+    "trendQuarterly": "แนวโน้มรายไตรมาส",
+    "trendMonthly": "แนวโน้มรายเดือน",
+    "datasetLabel": "ค่าใช้จ่าย",
+    "otherCategories": "อื่นๆ ({count})",
+    "drillDownAria": "ดูรายละเอียดของ {category}",
+    "noData": "ไม่มีข้อมูล"
+  },
+  "filters": {
+    "filtersLabel": "ตัวกรอง",
+    "reset": "รีเซ็ต",
+    "resetFilters": "รีเซ็ตตัวกรอง",
+    "categoryLabel": "หมวดหมู่:",
+    "projectLabel": "โปรเจกต์:",
+    "fromLabel": "จาก:",
+    "toLabel": "ถึง:",
+    "allCategoriesShort": "ทั้งหมด",
+    "allProjectsShort": "ทั้งหมด",
+    "allCategoriesLong": "ทุกหมวดหมู่",
+    "allProjectsLong": "ทุกโปรเจกต์"
+  },
+  "attention": {
+    "title": "สิ่งที่ต้องทำ",
+    "subtitle_one": "มี {n} รายการที่ต้องดูแล",
+    "subtitle_other": "มี {n} รายการที่ต้องดูแล",
+    "allClear": "เรียบร้อยทั้งหมด",
+    "allClearSub": "ไม่มีบิลครบกำหนด ไม่มียอดค้าง",
+    "more_one": "+อีก {n}",
+    "more_other": "+อีก {n}",
+    "open": "เปิด",
+    "readingsGroup": "ต้องบันทึกเลขมิเตอร์ {n} รายการ",
+    "settle": "ชำระ",
+    "dueToday": "ครบกำหนดวันนี้",
+    "dueIn_one": "ครบกำหนดใน {n} วัน",
+    "dueIn_other": "ครบกำหนดใน {n} วัน",
+    "overdueBy_one": "เลยกำหนด {n} วัน",
+    "overdueBy_other": "เลยกำหนด {n} วัน",
+    "readingMissing": "ยังไม่ได้บันทึกเลขมิเตอร์",
+    "readingLast_one": "ถึงเวลาจดมิเตอร์ · ครั้งล่าสุด {n} วันก่อน",
+    "readingLast_other": "ถึงเวลาจดมิเตอร์ · ครั้งล่าสุด {n} วันก่อน",
+    "overBudget": "เกินงบ · {pct}%",
+    "owedToYou": "{name} ค้างคุณ",
+    "youOwe": "คุณค้าง {name}",
+    "lastExpense": "ค่าใช้จ่ายล่าสุด: {date}",
+    "lastReading": "จดมิเตอร์ล่าสุด: {date}"
+  },
+  "period": {
+    "days7": "7 วัน",
+    "days30": "30 วัน",
+    "days90": "90 วัน",
+    "year": "ปี",
+    "custom": "กำหนดเอง"
+  }
+}
