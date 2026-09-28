@@ -173,6 +173,12 @@ func TestRegister_InheritsBrowserLanguage(t *testing.T) {
 			if settings.Language != tc.want {
 				t.Errorf("language = %q, want %q", settings.Language, tc.want)
 			}
+			// New accounts must receive in-app notifications without first
+			// having to find the toggles in settings.
+			if !settings.NotifyJoinRequests || !settings.NotifySharedExpenses {
+				t.Errorf("notifications off for a new account: join=%v shared=%v",
+					settings.NotifyJoinRequests, settings.NotifySharedExpenses)
+			}
 		})
 	}
 }

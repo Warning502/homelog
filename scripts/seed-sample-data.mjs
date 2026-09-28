@@ -125,7 +125,12 @@ async function loginOrRegister(person) {
 async function finishOnboarding(token) {
   await api('PUT', '/settings', {
     token,
-    body: { language: 'th', currency: 'THB', date_format: 'DD/MM/YYYY', onboarding_completed: true },
+    body: {
+      language: 'th', currency: 'THB', date_format: 'DD/MM/YYYY', onboarding_completed: true,
+      // On by default for accounts created since this was fixed; set
+      // explicitly so older servers produce notifications too.
+      notify_join_requests: true, notify_shared_expenses: true,
+    },
   })
 }
 
