@@ -209,15 +209,6 @@
       </div>
       </template>
     </Card>
-
-    <a
-      :href="privacyUrl(locale)"
-      target="_blank"
-      rel="noopener"
-      class="mt-6 text-xs text-ink-muted hover:text-ink-soft underline underline-offset-2"
-    >
-      {{ t('auth.privacyLink') }}
-    </a>
   </div>
 </template>
 
@@ -228,7 +219,6 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { authAPI } from '@/api/client'
 import { useDemoMode, DEMO_EMAIL, DEMO_PASSWORD } from '@/composables/useDemoMode'
-import { privacyUrl } from '@/config/links'
 import Card from '@/components/common/Card.vue'
 import Input from '@/components/common/Input.vue'
 import Button from '@/components/common/Button.vue'
