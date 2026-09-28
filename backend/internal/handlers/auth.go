@@ -120,15 +120,6 @@ func registerFailedField(err error) string {
 	return ""
 }
 
-// defaultCurrencyFor picks the starting currency of a new account from the
-// language it registers in. The user can change it in settings at any time.
-func defaultCurrencyFor(language string) string {
-	if language == "th" {
-		return "THB"
-	}
-	return "EUR"
-}
-
 // issueSession generates a fresh token pair, stores the refresh token in its
 // cookie and returns the access token.
 func (h *AuthHandler) issueSession(c *gin.Context, user *models.User) (string, error) {
@@ -248,7 +239,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		userSettings := models.UserSettings{
 			UserID:                    user.ID,
 			Language:                  language,
-			Currency:                  defaultCurrencyFor(language),
+			Currency:                  models.DefaultCurrencyFor(language),
 			Theme:                     "auto",
 			DateFormat:                "DD/MM/YYYY",
 			DefaultSplitWithMemberIDs: "",
@@ -300,7 +291,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		userSettings := models.UserSettings{
 			UserID:                    user.ID,
 			Language:                  language,
-			Currency:                  defaultCurrencyFor(language),
+			Currency:                  models.DefaultCurrencyFor(language),
 			Theme:                     "auto",
 			DateFormat:                "DD/MM/YYYY",
 			DefaultSplitWithMemberIDs: "",

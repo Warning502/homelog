@@ -159,6 +159,15 @@ var SupportedLanguages = map[string]bool{
 // (see i18n.T and the vue-i18n fallbackLocale).
 const DefaultLanguage = "th"
 
+// DefaultCurrencyFor picks the starting currency for an account that reads
+// the app in lang. The user can change it in settings at any time.
+func DefaultCurrencyFor(lang string) string {
+	if lang == "th" {
+		return "THB"
+	}
+	return "EUR"
+}
+
 // NormalizeLanguage maps a client-supplied language tag onto a supported
 // language, falling back to DefaultLanguage. Accepts regional tags ("en-GB")
 // and any casing, so a raw navigator.language value can be passed straight in.
