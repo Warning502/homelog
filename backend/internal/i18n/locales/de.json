@@ -16,6 +16,7 @@
   "month.short.9": "Sep",
   "notification.expense_shared.body": "{payer} hat eine Ausgabe hinzugefügt. Ihr Anteil: {amount}.",
   "notification.expense_shared.title": "Neue geteilte Ausgabe: {description}",
+  "property.default_name": "Hauptwohnung",
   "utility.type.affitto": "Miete",
   "utility.type.electricity": "Strom",
   "utility.type.gas": "Gas",

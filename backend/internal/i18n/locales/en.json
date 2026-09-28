@@ -16,6 +16,7 @@
   "month.short.9": "Sep",
   "notification.expense_shared.body": "{payer} added an expense. Your share: {amount}.",
   "notification.expense_shared.title": "New shared expense: {description}",
+  "property.default_name": "Main home",
   "utility.type.affitto": "Rent",
   "utility.type.electricity": "Electricity",
   "utility.type.gas": "Gas",

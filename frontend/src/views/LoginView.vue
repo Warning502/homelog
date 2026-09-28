@@ -265,8 +265,12 @@ const forgotSubmitted = ref(false)
 const resetForm = ref({ token: '', newPassword: '', confirmPassword: '' })
 
 async function handleSubmit() {
-  loading.value = true
   error.value = null
+  if (mode.value === 'register' && form.value.password.length < 8) {
+    error.value = t('auth.reset.passwordTooShort')
+    return
+  }
+  loading.value = true
   try {
     if (mode.value === 'register') {
       // The new account starts in the language the signup form is showing,
@@ -322,7 +326,7 @@ async function handleResetPassword() {
     error.value = t('auth.reset.tokenRequired')
     return
   }
-  if (resetForm.value.newPassword.length < 6) {
+  if (resetForm.value.newPassword.length < 8) {
     error.value = t('auth.reset.passwordTooShort')
     return
   }

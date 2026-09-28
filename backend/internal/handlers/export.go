@@ -452,7 +452,7 @@ func (h *ExportHandler) ImportData(c *gin.Context) {
 	log.Printf("✅ Import completed for user %d: %+v", userID, counts)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "Importazione completata con successo",
+		"message":  "Import completed",
 		"imported": counts,
 	})
 }

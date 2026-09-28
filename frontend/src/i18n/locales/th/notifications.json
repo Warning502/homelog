@@ -1,0 +1,25 @@
+{
+  "title": "การแจ้งเตือน",
+  "markAllRead": "ทำเครื่องหมายว่าอ่านทั้งหมด",
+  "deleteRead": "ลบที่อ่านแล้ว",
+  "filterAll": "ทั้งหมด",
+  "filterUnread": "ยังไม่อ่าน",
+  "emptyAll": "ไม่มีการแจ้งเตือน",
+  "emptyUnread": "ไม่มีการแจ้งเตือนที่ยังไม่อ่าน",
+  "important": "สำคัญ",
+  "deleteAria": "ลบ",
+  "types": {
+    "price_change": "การเปลี่ยนแปลงราคา",
+    "contract_modification": "การแก้ไขสัญญา",
+    "info": "ข้อมูล",
+    "privacy": "ความเป็นส่วนตัว",
+    "join_request": "คำขอเข้าร่วม",
+    "expense_shared": "ค่าใช้จ่ายร่วม"
+  },
+  "deleteOneTitle": "ลบการแจ้งเตือน",
+  "deleteOneMessage": "ต้องการลบการแจ้งเตือนนี้หรือไม่?",
+  "deleteOneConfirm": "ลบ",
+  "deleteAllTitle": "ลบการแจ้งเตือนที่อ่านแล้ว",
+  "deleteAllMessage": "ต้องการลบการแจ้งเตือนที่อ่านแล้ว {n} รายการหรือไม่?",
+  "deleteAllConfirm": "ลบทั้งหมด"
+}

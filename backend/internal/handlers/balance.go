@@ -100,7 +100,7 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 			Balance:         0,
 			CurrentMemberID: 0,
 			OtherMemberID:   0,
-			Message:         "Settings non trovate",
+			Message:         "Household settings not found",
 		})
 		return
 	}
@@ -113,7 +113,7 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 			Balance:         0,
 			CurrentMemberID: 0,
 			OtherMemberID:   0,
-			Message:         "Split mode disattivato",
+			Message:         "Split mode disabled",
 		})
 		return
 	}
@@ -126,7 +126,7 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 			Balance:         0,
 			CurrentMemberID: 0,
 			OtherMemberID:   0,
-			Message:         "Profilo membro non trovato",
+			Message:         "Member profile not found",
 		})
 		return
 	}
