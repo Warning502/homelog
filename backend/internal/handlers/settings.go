@@ -116,12 +116,13 @@ func (h *SettingsHandler) Get(c *gin.Context) {
 	err := h.db.Where("user_id = ?", userID).First(&settings).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			// Return defaults
+			// Return defaults. These used to be hardcoded Italian/EUR, which
+			// switched the whole UI to Italian for any account without a row.
 			c.JSON(http.StatusOK, UserSettingsResponse{
 				Theme:                     "auto",
 				ColorTheme:                defaultColorTheme,
-				Currency:                  "EUR",
-				Language:                  "it",
+				Currency:                  models.DefaultCurrencyFor(models.DefaultLanguage),
+				Language:                  models.DefaultLanguage,
 				DateFormat:                "DD/MM/YYYY",
 				DefaultSplitWithMemberIDs: "",
 				DefaultTemplates:          "",
@@ -195,8 +196,8 @@ func (h *SettingsHandler) Update(c *gin.Context) {
 				UserID:                    userID,
 				Theme:                     "auto",
 				ColorTheme:                defaultColorTheme,
-				Currency:                  "EUR",
-				Language:                  "it",
+				Currency:                  models.DefaultCurrencyFor(models.DefaultLanguage),
+				Language:                  models.DefaultLanguage,
 				DefaultSplitWithMemberIDs: "",
 				EmailNotifications:        true,
 				NotifyJoinRequests:        true,

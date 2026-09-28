@@ -90,6 +90,12 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 	}
 	propertyID := uint(propertyIDParsed)
 
+	// Only members of the property may read its balance. Without this, any
+	// signed-in user got a 200 for any property id (and could probe ids).
+	if !requirePropertyMember(c, h.db, currentUserID, propertyID) {
+		return
+	}
+
 	log.Printf("🔍 BALANCE REQUEST: PropertyID=%d, CurrentUserID=%d", propertyID, currentUserID)
 
 	// Check split mode first
@@ -143,7 +149,8 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 			return
 		}
 		otherMemberID = uint(otherMemberIDParsed)
-		if err := h.db.First(&otherMember, otherMemberID).Error; err != nil {
+		// The other member must belong to the same property.
+		if err := h.db.Where("id = ? AND property_id = ?", otherMemberID, propertyID).First(&otherMember).Error; err != nil {
 			apierr.Fail(c, http.StatusNotFound, "other_member_not_found", "The other member was not found")
 			return
 		}
@@ -160,7 +167,7 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 				CurrentMemberID:   currentMember.ID,
 				CurrentMemberName: currentMember.Name,
 				OtherMemberID:     0,
-				Message:           "Nessun altro membro nella casa",
+				Message:           "No other member in the household",
 			})
 			return
 		}
@@ -217,6 +224,12 @@ func (h *BalanceHandler) GetBalanceDetails(c *gin.Context) {
 	}
 	propertyID := uint(propertyIDParsed)
 
+	// Only members of the property may read its balance. Without this, any
+	// signed-in user got a 200 for any property id (and could probe ids).
+	if !requirePropertyMember(c, h.db, currentUserID, propertyID) {
+		return
+	}
+
 	log.Printf("GetBalanceDetails - PropertyID: %d, CurrentUserID: %d", propertyID, currentUserID)
 
 	// Find the current user's member ID for this property
@@ -242,7 +255,8 @@ func (h *BalanceHandler) GetBalanceDetails(c *gin.Context) {
 			return
 		}
 		otherMemberID = uint(otherMemberIDParsed)
-		if err := h.db.First(&otherMember, otherMemberID).Error; err != nil {
+		// The other member must belong to the same property.
+		if err := h.db.Where("id = ? AND property_id = ?", otherMemberID, propertyID).First(&otherMember).Error; err != nil {
 			apierr.Fail(c, http.StatusNotFound, "other_member_not_found", "The other member was not found")
 			return
 		}

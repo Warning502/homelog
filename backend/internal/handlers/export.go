@@ -472,7 +472,7 @@ func (h *ExportHandler) importExpenses(tx *gorm.DB, userID uint, raw []any) (int
 		e.BillID = nil    // do not carry over bill FK — bills are not re-imported here
 		e.Splits = nil    // splits handled separately in full import
 		if err := tx.Omit("Splits").Create(&e).Error; err != nil {
-			return count, fmt.Errorf("spesa '%s': %w", e.Description, err)
+			return count, fmt.Errorf("expense '%s': %w", e.Description, err)
 		}
 		count++
 	}

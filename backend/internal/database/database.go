@@ -306,8 +306,8 @@ func SeedDefaultData(db *gorm.DB, userID uint) error {
 	// Create default user settings
 	settings := models.UserSettings{
 		UserID:                    userID,
-		Language:                  "it",
-		Currency:                  "EUR",
+		Language:                  models.DefaultLanguage,
+		Currency:                  models.DefaultCurrencyFor(models.DefaultLanguage),
 		Theme:                     "auto",
 		DateFormat:                "DD/MM/YYYY",
 		DefaultSplitWithMemberIDs: "",
