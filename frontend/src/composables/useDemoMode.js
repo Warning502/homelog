@@ -17,7 +17,7 @@ let initPromise = null
 
 // Credentials for the single shared demo account. Mirrors the backend
 // constants in database/demo.go; used to prefill the login form.
-export const DEMO_EMAIL = 'demo@homelog.app'
+export const DEMO_EMAIL = 'demo@hbs-finance.com'
 export const DEMO_PASSWORD = 'demo'
 
 export function useDemoMode() {

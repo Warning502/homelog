@@ -32,7 +32,7 @@ export default {
         // [data-theme] — NOT here. Blue stays for nav/links/tabs.
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'system-ui', 'Arial', 'sans-serif'],
+        sans: ['Sarabun', 'Leelawadee UI', 'Tahoma', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'system-ui', 'Arial', 'sans-serif'],
       },
       spacing: {
         '18': '4.5rem',

@@ -71,7 +71,7 @@ func seedThaiDemo(db *gorm.DB) error {
 	// Somying cannot sign in (random, discarded password); she exists so the
 	// demo shows a real two-person household with notifications and balances.
 	otherHash, _ := bcrypt.GenerateFromPassword([]byte(fmt.Sprintf("%d-%d", rand.Int63(), time.Now().UnixNano())), bcrypt.MinCost)
-	somying := models.User{Email: "somying@demo.homelog.app", PasswordHash: string(otherHash), Name: "สมหญิง", Role: "user", IsActive: true}
+	somying := models.User{Email: "somying@hbs-finance.com", PasswordHash: string(otherHash), Name: "สมหญิง", Role: "user", IsActive: true}
 	if err := db.Create(&somying).Error; err != nil {
 		return err
 	}
