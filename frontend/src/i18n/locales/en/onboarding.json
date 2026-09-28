@@ -56,7 +56,7 @@
     "saveError": "Error saving preferences."
   },
   "step4": {
-    "title": "Discover HomeLog",
+    "title": "Discover HBS Finance",
     "subtitle": "Here's what you can do with your new app.",
     "completeButton": "Get started!",
     "completingButton": "Finishing up...",
@@ -64,7 +64,7 @@
     "features": {
       "pdf": {
         "title": "Bill PDF extraction",
-        "description": "Upload your bills as PDFs and HomeLog automatically extracts the data using configurable templates."
+        "description": "Upload your bills as PDFs and HBS Finance automatically extracts the data using configurable templates."
       },
       "split": {
         "title": "Expense splitting",

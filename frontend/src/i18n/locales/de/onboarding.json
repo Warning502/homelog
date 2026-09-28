@@ -56,7 +56,7 @@
     "saveError": "Fehler beim Speichern der Einstellungen."
   },
   "step4": {
-    "title": "HomeLog entdecken",
+    "title": "HBS Finance entdecken",
     "subtitle": "Das kannst du mit deiner neuen App machen.",
     "completeButton": "Los geht's!",
     "completingButton": "Wird abgeschlossen...",
@@ -64,7 +64,7 @@
     "features": {
       "pdf": {
         "title": "Rechnungs-PDFs auslesen",
-        "description": "Lade deine Rechnungen als PDFs hoch und HomeLog extrahiert die Daten automatisch mithilfe konfigurierbarer Vorlagen."
+        "description": "Lade deine Rechnungen als PDFs hoch und HBS Finance extrahiert die Daten automatisch mithilfe konfigurierbarer Vorlagen."
       },
       "split": {
         "title": "Ausgaben aufteilen",

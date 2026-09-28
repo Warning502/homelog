@@ -5,7 +5,7 @@
       <!-- Left: Logo + Desktop nav -->
       <div class="flex items-center gap-8">
         <router-link to="/" class="text-xl font-bold text-ink">
-          HomeLog
+          HBS Finance
         </router-link>
 
         <!-- Desktop Navigation -->

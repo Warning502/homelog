@@ -2,7 +2,7 @@
   <div class="min-h-screen flex flex-col items-center justify-center bg-canvas p-4">
     <Card class="w-full max-w-md p-8">
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold mb-2 text-ink">HomeLog</h1>
+        <h1 class="text-4xl font-bold mb-2 text-ink">HBS Finance</h1>
         <p class="text-ink-soft">{{ t('auth.appTagline') }}</p>
       </div>
 

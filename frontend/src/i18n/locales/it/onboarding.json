@@ -56,7 +56,7 @@
     "saveError": "Errore nel salvataggio delle preferenze."
   },
   "step4": {
-    "title": "Scopri HomeLog",
+    "title": "Scopri HBS Finance",
     "subtitle": "Ecco cosa puoi fare con la tua nuova app.",
     "completeButton": "Inizia!",
     "completingButton": "Completamento...",
@@ -64,7 +64,7 @@
     "features": {
       "pdf": {
         "title": "Estrazione PDF bollette",
-        "description": "Carica le tue bollette in PDF e HomeLog estrae automaticamente i dati grazie ai template configurabili."
+        "description": "Carica le tue bollette in PDF e HBS Finance estrae automaticamente i dati grazie ai template configurabili."
       },
       "split": {
         "title": "Divisione spese",
