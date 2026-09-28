@@ -20,13 +20,6 @@
     "categories": "Kategorien",
     "data": "Daten"
   },
-  "about": {
-    "title": "Über & Support",
-    "tagline": "HomeLog ist kostenlos und Open Source. Wenn es dir im Haushalt hilft, kannst du die Weiterentwicklung gerne unterstützen.",
-    "updateAvailable": "Update verfügbar",
-    "star": "Auf GitHub favorisieren",
-    "donate": "Spenden"
-  },
   "preferences": {
     "title": "Persönliche Einstellungen",
     "theme": "Erscheinungsbild",
