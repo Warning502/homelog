@@ -23,17 +23,6 @@
         <Button variant="secondary" class="w-full" :disabled="loading" @click="enterDemo">
           {{ t('demo.login.button') }}
         </Button>
-        <p class="text-xs text-ink-muted pt-1">
-          {{ t('demo.login.selfHostPrompt') }}
-          <a
-            :href="links.github"
-            target="_blank"
-            rel="noopener"
-            class="font-semibold underline hover:no-underline text-accent-soft"
-          >
-            {{ t('demo.login.selfHostLink') }}
-          </a>
-        </p>
       </div>
 
       <!-- ── Login / Register / Forgot / Reset (hidden on the demo — see banner above) ── -->
@@ -239,7 +228,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { authAPI } from '@/api/client'
 import { useDemoMode, DEMO_EMAIL, DEMO_PASSWORD } from '@/composables/useDemoMode'
-import { LINKS as links, privacyUrl } from '@/config/links'
+import { privacyUrl } from '@/config/links'
 import Card from '@/components/common/Card.vue'
 import Input from '@/components/common/Input.vue'
 import Button from '@/components/common/Button.vue'
