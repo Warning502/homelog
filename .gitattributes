@@ -1,0 +1,6 @@
+# Keep Unix line endings for files that run on Linux (the server, Docker),
+# even when the repo is checked out on Windows with core.autocrlf=true.
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf

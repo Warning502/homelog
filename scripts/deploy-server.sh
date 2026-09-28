@@ -21,5 +21,8 @@ echo "==> Fetching the latest main..."
 git fetch -q origin main
 echo "==> Deploying $(git rev-parse --short origin/main) to ${TARGET}:${REMOTE_DIR}"
 
-git archive --format=tar origin/main | ssh -o StrictHostKeyChecking=accept-new "$TARGET" \
-  "set -e; mkdir -p '$REMOTE_DIR' && tar -x -C '$REMOTE_DIR' && cd '$REMOTE_DIR' && bash scripts/server-setup.sh"
+# core.autocrlf=false: on Windows, git archive would otherwise convert every
+# text file to CRLF, and the server's bash chokes on "set -o pipefail\r".
+# The remote side strips any stray CR from the setup script as a second guard.
+git -c core.autocrlf=false archive --format=tar origin/main | ssh -o StrictHostKeyChecking=accept-new "$TARGET" \
+  "set -e; mkdir -p '$REMOTE_DIR' && tar -x -C '$REMOTE_DIR' && cd '$REMOTE_DIR' && tr -d '\\r' < scripts/server-setup.sh > .setup.sh && bash .setup.sh; rc=\$?; rm -f .setup.sh; exit \$rc"
