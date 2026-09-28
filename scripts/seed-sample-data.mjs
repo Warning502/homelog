@@ -125,7 +125,12 @@ async function loginOrRegister(person) {
 async function finishOnboarding(token) {
   await api('PUT', '/settings', {
     token,
-    body: { language: 'th', currency: 'THB', date_format: 'DD/MM/YYYY', onboarding_completed: true },
+    body: {
+      language: 'th', currency: 'THB', date_format: 'DD/MM/YYYY', onboarding_completed: true,
+      // New accounts start with these off; a household that has used the app
+      // for a while would have turned them on, and it makes the bell realistic.
+      notify_join_requests: true, notify_shared_expenses: true,
+    },
   })
 }
 
