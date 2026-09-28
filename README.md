@@ -147,6 +147,20 @@ cd frontend && npm install && npm run dev
 
 The Vite dev server proxies `/api` to the backend automatically.
 
+### Sample data
+
+To see the app with a long history, fill a **throwaway** instance with a Thai
+household that has been using it for 18 months. It creates two sign-ins
+(`somchai@example.com` / `somying@example.com`, password `HomeLog2024!`):
+
+```bash
+node scripts/seed-sample-data.mjs --months 18 --base http://localhost:8080
+```
+
+The script goes through the public API, takes about 10 minutes (the server
+rate-limits requests), and does nothing if the sample household already has
+data. See [TESTING.md](TESTING.md) for the end-to-end test plan.
+
 ---
 
 ## Contributing

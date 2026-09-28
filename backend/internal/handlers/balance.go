@@ -176,14 +176,15 @@ func (h *BalanceHandler) GetBalance(c *gin.Context) {
 		return
 	}
 
-	// Generate message
+	// Developer-facing summary (the UI renders its own translated text from
+	// the numbers). No currency symbol: the household currency is a setting.
 	var message string
 	if balance > 0 {
-		message = fmt.Sprintf("%s ti deve €%.2f", otherMember.Name, balance)
+		message = fmt.Sprintf("%s owes you %.2f", otherMember.Name, balance)
 	} else if balance < 0 {
-		message = fmt.Sprintf("Devi a %s €%.2f", otherMember.Name, -balance)
+		message = fmt.Sprintf("You owe %s %.2f", otherMember.Name, -balance)
 	} else {
-		message = "Siete pari"
+		message = "All settled"
 	}
 
 	log.Printf("   💰 FINAL BALANCE: %.2f - %s", balance, message)
