@@ -32,6 +32,8 @@ func IsDemoMode() bool {
 // that normally keep it in sync — re-seeding via GORM .Create() repopulates it.
 var demoTables = []string{
 	"search_index",
+	"money_transactions",
+	"accounts",
 	"expense_splits",
 	"settlements",
 	"bill_installments",

@@ -40,6 +40,8 @@ type CreateExpenseRequest struct {
 	PaidByMemberID     uint     `json:"paid_by_member_id"`
 	IsSplit            bool     `json:"is_split"`
 	SplitWithMemberIDs []uint   `json:"split_with_member_ids"`
+	AccountID          *uint    `json:"account_id"`    // money account it was paid from
+	ForMemberID        *uint    `json:"for_member_id"` // who it was spent on; nil = shared
 }
 
 // UpdateExpenseRequest represents the request body for updating an expense
@@ -54,6 +56,8 @@ type UpdateExpenseRequest struct {
 	ProjectID        *uint    `json:"project_id"`
 	Date             *string  `json:"date"`
 	AttachmentURL    *string  `json:"attachment_url"`
+	AccountID        *uint    `json:"account_id"`    // 0 clears
+	ForMemberID      *uint    `json:"for_member_id"` // 0 clears
 }
 
 // MonthlyStats represents monthly expense statistics
@@ -322,6 +326,11 @@ func (h *ExpenseHandler) Create(c *gin.Context) {
 		AttachmentURL:    req.AttachmentURL,
 		PaidByMemberID:   paidByMemberID,
 		IsSplit:          req.IsSplit,
+	}
+	// Look up through tx: it holds the connection while the insert is open.
+	if !h.applyLedgerRefs(c, tx, req.PropertyID, req.AccountID, req.ForMemberID, &expense) {
+		tx.Rollback()
+		return
 	}
 
 	if err := tx.Create(&expense).Error; err != nil {
@@ -605,6 +614,25 @@ func (h *ExpenseHandler) Update(c *gin.Context) {
 		updates["subcategory_id"] = *req.SubcategoryID
 	}
 
+	// Which account paid and who it was for are bookkeeping labels that never
+	// touch the split balances, so they stay editable after settlement too.
+	if req.AccountID != nil || req.ForMemberID != nil {
+		pid := expense.PropertyID
+		if v, ok := updates["property_id"].(uint); ok {
+			pid = &v
+		}
+		probe := models.Expense{AccountID: expense.AccountID, ForMemberID: expense.ForMemberID}
+		if !h.applyLedgerRefs(c, h.db, pid, req.AccountID, req.ForMemberID, &probe) {
+			return
+		}
+		if req.AccountID != nil {
+			updates["account_id"] = probe.AccountID
+		}
+		if req.ForMemberID != nil {
+			updates["for_member_id"] = probe.ForMemberID
+		}
+	}
+
 	// Apply updates atomically — if amount is changing on a split expense we
 	// also need to recompute every split's quota in the same transaction so
 	// Bilancio stays consistent with the new total.
@@ -701,3 +729,33 @@ func (h *ExpenseHandler) Delete(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Expense deleted successfully"})
 }
+
+// applyLedgerRefs validates the optional account and "for member" of an
+// expense against its property and sets them on e. A zero id clears the field.
+// Returns false after writing an error response.
+func (h *ExpenseHandler) applyLedgerRefs(c *gin.Context, db *gorm.DB, propertyID *uint, accountID, forMemberID *uint, e *models.Expense) bool {
+	if accountID != nil {
+		if *accountID == 0 {
+			e.AccountID = nil
+		} else if propertyID == nil || !accountInProperty(db, *accountID, *propertyID) {
+			apierr.Fail(c, http.StatusBadRequest, "invalid_account", "That account does not belong to this household")
+			return false
+		} else {
+			id := *accountID
+			e.AccountID = &id
+		}
+	}
+	if forMemberID != nil {
+		if *forMemberID == 0 {
+			e.ForMemberID = nil
+		} else if propertyID == nil || !memberInProperty(db, *forMemberID, *propertyID) {
+			apierr.Fail(c, http.StatusBadRequest, "invalid_member", "That person is not a member of this household")
+			return false
+		} else {
+			id := *forMemberID
+			e.ForMemberID = &id
+		}
+	}
+	return true
+}
+

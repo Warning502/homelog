@@ -106,6 +106,8 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.ExpenseTemplate{},
 		&models.PropertyJoinRequest{},
 		&models.Notification{},
+		&models.Account{},
+		&models.MoneyTransaction{},
 	)
 
 	if err != nil {

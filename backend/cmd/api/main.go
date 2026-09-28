@@ -467,6 +467,18 @@ func registerAPIRoutes(r gin.IRouter, db *gorm.DB) {
 			properties.GET("/:id/settings", settingsHandler.GetHouseholdSettings)
 			properties.PUT("/:id/settings", settingsHandler.UpdateHouseholdSettings)
 
+			// Money accounts, incomes/transfers and the per-member summary
+			ledgerHandler := handlers.NewLedgerHandler(db)
+			properties.GET("/:id/accounts", ledgerHandler.ListAccounts)
+			properties.POST("/:id/accounts", ledgerHandler.CreateAccount)
+			properties.GET("/:id/transactions", ledgerHandler.ListTransactions)
+			properties.POST("/:id/transactions", ledgerHandler.CreateTransaction)
+			properties.GET("/:id/ledger/summary", ledgerHandler.Summary)
+			protected.PUT("/accounts/:id", ledgerHandler.UpdateAccount)
+			protected.DELETE("/accounts/:id", ledgerHandler.DeleteAccount)
+			protected.PUT("/transactions/:id", ledgerHandler.UpdateTransaction)
+			protected.DELETE("/transactions/:id", ledgerHandler.DeleteTransaction)
+
 			// Household members (per property) - nested under properties
 			memberHandler := handlers.NewMemberHandler(db)
 			properties.GET("/:id/members", memberHandler.List)
