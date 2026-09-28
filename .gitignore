@@ -71,3 +71,6 @@ debug/
 # Claude Code
 .claude/
 CLAUDE.md
+
+# Cloudflare Wrangler
+.wrangler/

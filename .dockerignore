@@ -26,3 +26,7 @@ backend/data/
 .env.*
 env.local
 *.local
+
+# Cloudflare deploy tooling is not part of the image
+deploy/cloudflare/node_modules
+deploy/cloudflare/.wrangler

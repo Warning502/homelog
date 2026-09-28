@@ -1,0 +1,27 @@
+// Public HomeLog demo on Cloudflare Containers.
+// Deploy from this folder:  npx wrangler deploy   (see README.md)
+{
+  "name": "homelog-demo",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  "containers": [
+    {
+      "class_name": "HomeLogContainer",
+      // Builds the repository's own Dockerfile (frontend + Go backend).
+      "image": "../../Dockerfile",
+      "image_build_context": "../..",
+      // One shared demo instance: every visitor sees the same household.
+      "max_instances": 1,
+      "instance_type": "basic"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "HOMELOG", "class_name": "HomeLogContainer" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["HomeLogContainer"] }],
+  "vars": {
+    // Optional GoatCounter site code for visit stats; empty = no analytics.
+    "DEMO_GOATCOUNTER_SITE": ""
+  },
+  "observability": { "enabled": true }
+}

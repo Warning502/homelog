@@ -1,23 +1,21 @@
 import { watch } from 'vue'
 
-// Cookieless, privacy-first usage stats for the public demo instance only.
-// Self-hosted installs never load this: GoatCounter is wired up exclusively
-// when isDemoMode (from /version) is true, and it sets no cookies and stores
-// no personal data — see docs-site privacy policy (demo section).
-//
-// TODO: replace with your GoatCounter site code (sign up free for open
-// source projects at https://www.goatcounter.com/) before deploying.
-const GOATCOUNTER_SITE = 'homelog-demo'
+// Cookieless, privacy-first usage stats for a public demo instance only.
+// Nothing loads unless the server runs in demo mode AND its operator set
+// DEMO_GOATCOUNTER_SITE (reported by /version as analytics_site). It used to
+// be a hardcoded site code, which sent every fork's demo visitors to the
+// upstream project's dashboard. GoatCounter sets no cookies and stores no
+// personal data.
 
 let scriptRequested = false
 
-function loadScript(onReady) {
+function loadScript(site, onReady) {
   if (scriptRequested) return
   scriptRequested = true
   const script = document.createElement('script')
   script.async = true
   script.src = 'https://gc.zgo.at/count.js'
-  script.dataset.goatcounter = `https://${GOATCOUNTER_SITE}.goatcounter.com/count`
+  script.dataset.goatcounter = `https://${site}.goatcounter.com/count`
   // We call count() ourselves on every route change (incl. the first), so
   // disable GoatCounter's own onload pageview to avoid double-counting.
   script.dataset.goatcounterSettings = JSON.stringify({ no_onload: true })
@@ -39,11 +37,11 @@ function browserLanguage() {
 }
 
 // Call once at startup (App.vue), after the router is available. No-ops
-// until/unless isDemoMode becomes true.
-export function initAnalytics(router, isDemoMode) {
-  const stop = watch(isDemoMode, (enabled) => {
-    if (!enabled) return
-    loadScript(() => {
+// until/unless the /version response names an analytics site.
+export function initAnalytics(router, analyticsSite) {
+  const stop = watch(analyticsSite, (site) => {
+    if (!site || !/^[a-z0-9-]+$/.test(site)) return
+    loadScript(site, () => {
       countPageview(router.currentRoute.value.fullPath)
       trackEvent(`lang_${browserLanguage()}`)
     })

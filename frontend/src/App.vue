@@ -50,11 +50,12 @@ const settingsStore = useSettingsStore()
 const router = useRouter()
 
 // Detect demo instance once at startup (public endpoint, pre-auth safe).
-const { isDemoMode } = useDemoMode()
+const { analyticsSite } = useDemoMode()
 useDemoMode().initDemoMode()
 
-// Cookieless usage stats — only ever activates when isDemoMode is true.
-initAnalytics(router, isDemoMode)
+// Cookieless usage stats — only on a demo instance whose operator set
+// DEMO_GOATCOUNTER_SITE; otherwise nothing is loaded.
+initAnalytics(router, analyticsSite)
 
 // Cache main views to avoid re-mount flicker on navigation
 const cachedViews = ['DashboardView', 'ExpensesView', 'UtilitiesView', 'ProjectsView', 'SettingsView']

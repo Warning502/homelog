@@ -85,13 +85,22 @@ func ResetDemoData(db *gorm.DB) error {
 	// and previously issued demo JWTs (which embed user_id=1) keep working.
 	db.Exec("DELETE FROM sqlite_sequence")
 
-	if err := seedDemoData(db); err != nil {
+	seed := DemoSeeder
+	if seed == nil {
+		seed = seedDemoData
+	}
+	if err := seed(db); err != nil {
 		return err
 	}
 
 	log.Println("✅ Demo data reset complete")
 	return nil
 }
+
+// DemoSeeder, when set, replaces the built-in demo dataset. The server sets
+// it to a seeder that drives the real API handlers in-process (which this
+// package cannot import); tests leave it nil and get seedDemoData.
+var DemoSeeder func(db *gorm.DB) error
 
 // SeedDemoIfNeeded seeds the demo dataset at startup when DEMO_MODE is on and
 // the demo account is missing (fresh container). Existing data is left intact
