@@ -62,7 +62,7 @@
   "invalid_date": "Formato data non valido",
   "invalid_date_from": "Formato della data di inizio non valido",
   "invalid_date_to": "Formato della data di fine non valido",
-  "invalid_email": "Inserisci un indirizzo email valido (ad esempio nome@esempio.com)",
+  "invalid_email": "Inserisci un indirizzo email valido (ad esempio nome{'@'}esempio.com)",
   "invalid_expense_id": "ID spesa non valido",
   "invalid_installment_id": "ID rata non valido",
   "invalid_join_request_id": "ID richiesta di accesso non valido",

@@ -62,7 +62,7 @@
 "invalid_date": "Ungültiges Datumsformat",
 "invalid_date_from": "Ungültiges Startdatumsformat",
 "invalid_date_to": "Ungültiges Enddatumsformat",
-"invalid_email": "Bitte gib eine gültige E-Mail-Adresse ein (z. B. name@beispiel.de)",
+"invalid_email": "Bitte gib eine gültige E-Mail-Adresse ein (z. B. name{'@'}beispiel.de)",
 "invalid_expense_id": "Ungültige Ausgaben-ID",
 "invalid_installment_id": "Ungültige Raten-ID",
 "invalid_join_request_id": "Ungültige Beitrittsanfrage-ID",

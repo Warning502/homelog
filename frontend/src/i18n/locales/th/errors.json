@@ -62,7 +62,7 @@
   "invalid_date": "รูปแบบวันที่ไม่ถูกต้อง",
   "invalid_date_from": "รูปแบบวันที่เริ่มต้นไม่ถูกต้อง",
   "invalid_date_to": "รูปแบบวันที่สิ้นสุดไม่ถูกต้อง",
-  "invalid_email": "กรุณากรอกอีเมลให้ถูกต้อง (เช่น name@example.com)",
+  "invalid_email": "กรุณากรอกอีเมลให้ถูกต้อง (เช่น name{'@'}example.com)",
   "invalid_expense_id": "รหัสค่าใช้จ่ายไม่ถูกต้อง",
   "invalid_installment_id": "รหัสงวดชำระไม่ถูกต้อง",
   "invalid_join_request_id": "รหัสคำขอเข้าร่วมไม่ถูกต้อง",

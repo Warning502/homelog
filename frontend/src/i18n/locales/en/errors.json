@@ -62,7 +62,7 @@
   "invalid_date": "Invalid date format",
   "invalid_date_from": "Invalid start date format",
   "invalid_date_to": "Invalid end date format",
-  "invalid_email": "Please enter a valid email address (for example name@example.com)",
+  "invalid_email": "Please enter a valid email address (for example name{'@'}example.com)",
   "invalid_expense_id": "Invalid expense id",
   "invalid_installment_id": "Invalid instalment id",
   "invalid_join_request_id": "Invalid join request id",
