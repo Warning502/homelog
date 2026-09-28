@@ -71,15 +71,18 @@
 ### Docker (recommended)
 
 ```bash
-git clone https://github.com/sgiraz/homelog.git && cd homelog
+git clone https://github.com/Warning502/homelog.git && cd homelog
 cp .env.example .env
 
 # Set a secure JWT secret (the only required setting)
 # Linux/macOS: openssl rand -base64 32
 # Paste the output into .env as JWT_SECRET=...
 
-docker compose up -d
+docker compose up -d --build
 ```
+
+`docker-compose.yml` builds the image from this repository's source. After
+`git pull`, run `docker compose up -d --build` again to rebuild.
 
 Open **http://localhost:8080**, register, and start tracking.
 
